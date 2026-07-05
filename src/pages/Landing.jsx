@@ -1,1249 +1,1616 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AlgoTrack — Stop Solving. Start Retaining.</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0D1117; --bg2: #10161E; --bg3: #141B25;
-      --violet: #7C3AED; --violet-light: #9B5AF5;
-      --violet-dim: rgba(124,58,237,0.15); --violet-border: rgba(124,58,237,0.35);
-      --text: #E6EDF3; --text-muted: #8B949E; --text-dim: #4A5568;
-      --green: #2EA043; --gold: #F0A500;
-      --mono: 'JetBrains Mono', monospace; --body: 'Inter', sans-serif;
-      --radius: 10px;
-    }
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: var(--body); line-height: 1.6; overflow-x: hidden; }
+import React, { useState, useEffect, useRef } from 'react'
 
-    /* ── NAV ── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem 2rem;
-      background: rgba(13,17,23,0.9); backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(124,58,237,0.15);
-    }
-    .nav-logo { font-family: var(--mono); font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
-    .nav-logo span { color: var(--violet); }
-    .nav-right { display: flex; align-items: center; gap: 0.75rem; }
-    .btn-nav-ghost {
-      background: transparent; color: var(--text-muted);
-      border: 1px solid rgba(139,148,158,0.2);
-      padding: 0.45rem 1.1rem; border-radius: 6px;
-      font-family: var(--mono); font-size: 0.78rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; text-decoration: none;
-    }
-    .btn-nav-ghost:hover { border-color: var(--violet-border); color: var(--text); }
-    .btn-nav-primary {
-      background: var(--violet); color: #fff; border: none;
-      padding: 0.45rem 1.1rem; border-radius: 6px;
-      font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
-      cursor: pointer; transition: background 0.2s; text-decoration: none;
-    }
-    .btn-nav-primary:hover { background: var(--violet-light); }
+const DOMAIN = '@ch.students.amrita.edu'
+function isAmritaEmail(e) { return e.toLowerCase().endsWith(DOMAIN) }
 
-    /* ── HERO ── */
-    .hero {
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center; padding: 7rem 1.5rem 4rem;
-      position: relative; overflow: hidden;
-    }
-    .hero-glow {
-      position: absolute; top: 35%; left: 50%; transform: translate(-50%,-50%);
-      width: 720px; height: 420px;
-      background: radial-gradient(ellipse, rgba(124,58,237,0.2) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .hero-grid {
-      position: absolute; inset: 0;
-      background-image: linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
-      background-size: 48px 48px; pointer-events: none;
-    }
-    .access-note {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      font-family: var(--mono); font-size: 0.68rem; font-weight: 600;
-      color: var(--text-dim); margin-bottom: 1.75rem;
-      letter-spacing: 0.04em;
-    }
-    .access-note svg { opacity: 0.5; }
-    .hero h1 {
-      font-family: var(--mono); font-size: clamp(2.4rem,6vw,4.5rem);
-      font-weight: 800; line-height: 1.08; letter-spacing: -0.04em; margin-bottom: 1.25rem;
-    }
-    .hero h1 .accent { color: var(--violet-light); }
-    .hero-sub { max-width: 530px; font-size: 1.05rem; color: var(--text-muted); margin: 0 auto 2.5rem; line-height: 1.75; }
-    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      background: var(--violet); color: #fff; border: none;
-      padding: 0.85rem 2rem; border-radius: 8px;
-      font-family: var(--mono); font-size: 0.95rem; font-weight: 700;
-      cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
-      box-shadow: 0 0 24px rgba(124,58,237,0.4);
-    }
-    .btn-primary:hover { background: var(--violet-light); box-shadow: 0 0 32px rgba(124,58,237,0.6); transform: translateY(-1px); }
-    .btn-ghost {
-      background: transparent; color: var(--text-muted);
-      border: 1px solid rgba(139,148,158,0.22);
-      padding: 0.85rem 2rem; border-radius: 8px;
-      font-family: var(--mono); font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
-    }
-    .btn-ghost:hover { border-color: var(--violet-border); color: var(--text); }
-    .hero-stat-row { display: flex; gap: 2.5rem; justify-content: center; flex-wrap: wrap; margin-top: 3.5rem; }
-    .hero-stat { text-align: center; }
-    .hero-stat .num { font-family: var(--mono); font-size: 1.6rem; font-weight: 800; color: var(--violet-light); }
-    .hero-stat .lbl { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.1rem; }
+const DEMO_PROBLEMS = [
+  { title: 'Two Sum', difficulty: 'Easy', topics: ['Arrays', 'HashMap'], notes: 'Store complement in hashmap. Single pass O(n).\nKey: target − current = complement.' },
+  { title: 'Valid Parentheses', difficulty: 'Easy', topics: ['Stack'], notes: 'Push open brackets onto stack.\nPop and match on every close bracket.\nStack empty at end = valid.' },
+  { title: 'Binary Search', difficulty: 'Easy', topics: ['Binary Search'], notes: 'mid = left + (right−left)/2 prevents overflow.\nAdjust bounds: arr[mid] > target → right = mid−1.' },
+]
 
-    /* ── SHARED SECTION ── */
-    section { padding: 6rem 1.5rem; }
-    .section-inner { max-width: 1100px; margin: 0 auto; }
-    .section-label { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--violet); margin-bottom: 0.65rem; }
-    .section-title { font-family: var(--mono); font-size: clamp(1.6rem,3.5vw,2.4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 0.85rem; }
-    .section-sub { font-size: 1rem; color: var(--text-muted); max-width: 520px; line-height: 1.7; }
-    .section-header { margin-bottom: 3.5rem; }
+const MASTERY = {
+  again:  { label: 'Again',  xp: 2,  interval: '1d',  color: '#DC2626', bg: '#FEF2F2', darkBg: 'rgba(220,38,38,0.12)', border: '#FECACA', darkBorder: 'rgba(220,38,38,0.3)' },
+  hard:   { label: 'Hard',   xp: 5,  interval: '3d',  color: '#D97706', bg: '#FFFBEB', darkBg: 'rgba(217,119,6,0.12)',  border: '#FDE68A', darkBorder: 'rgba(217,119,6,0.3)' },
+  good:   { label: 'Good',   xp: 10, interval: '7d',  color: '#16A34A', bg: '#F0FDF4', darkBg: 'rgba(22,163,74,0.12)',  border: '#BBF7D0', darkBorder: 'rgba(22,163,74,0.3)' },
+  master: { label: 'Master', xp: 20, interval: '14d', color: '#4F46E5', bg: '#EEF2FF', darkBg: 'rgba(79,70,229,0.12)',  border: '#C7D2FE', darkBorder: 'rgba(79,70,229,0.3)' },
+}
 
-    /* ── HOW IT WORKS ── */
-    .hiw { background: var(--bg2); }
-    .steps { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1.5rem; }
-    .step {
-      background: var(--bg3); border: 1px solid rgba(124,58,237,0.18);
-      border-radius: 12px; padding: 2rem;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .step:hover { border-color: var(--violet-border); transform: translateY(-3px); }
-    .step-num { font-family: var(--mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--violet); margin-bottom: 0.75rem; }
-    .step-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
-    .step h3 { font-family: var(--mono); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-    .step p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; }
-    .confidence-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
-    .pill { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 6px; }
-    .pill.again  { background: rgba(239,68,68,0.15);  color: #F87171; border: 1px solid rgba(239,68,68,0.3); }
-    .pill.hard   { background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
-    .pill.good   { background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid rgba(59,130,246,0.3); }
-    .pill.master { background: rgba(46,160,67,0.15);  color: #4ADE80; border: 1px solid rgba(46,160,67,0.3); }
+const FEATURES = [
+  { icon: '◎', title: 'Active Recall',      sub: 'Notes hidden by default. Force retrieval before revealing. Mastery buttons unlock only after recall attempt.' },
+  { icon: '⟳', title: 'Spaced Repetition',  sub: 'SM-2 schedules each problem at the optimal interval. Again=1d · Hard=3d · Good=7d · Master=14d.' },
+  { icon: '⊞', title: 'Custom Topics',       sub: 'Organize by any topic you define — not a fixed list. Your structure for your curriculum.' },
+  { icon: '▤', title: 'Master Notebook',     sub: 'One theory notebook per topic. Rules, templates, patterns — alongside problem tracking.' },
+  { icon: '⚡', title: 'XP + Rank Ladder',   sub: 'Novice → Apprentice → Adept → Expert → Master → Grandmaster. Every review earns XP.' },
+  { icon: '◈', title: 'Peer Leaderboard',    sub: 'Compete with your actual batchmates. Amrita Chennai exclusive. Appear after 10+ problems.' },
+  { icon: '▲', title: 'Weak Topic Radar',    sub: 'Auto-detects where you struggle most. Surfaces your Focus Area daily — e.g. ⚠️ Dynamic Programming (Accuracy: 40%).' },
+  { icon: '◻', title: 'Archive System',      sub: 'Mastered problems leave your queue. Auto-suggested after 3 consecutive Master ratings.' },
+  { icon: '◷', title: 'Weekly Goals',        sub: 'Set a weekly review target. Resets Monday. Hit it to unlock Goal Crusher achievement.' },
+]
 
-    /* ── FEATURES ── */
-    .features-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 1.25rem; }
-    .feat {
-      background: var(--bg2); border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 12px; padding: 1.75rem; transition: border-color 0.2s;
-    }
-    .feat:hover { border-color: var(--violet-border); }
-    .feat-icon { font-size: 1.5rem; margin-bottom: 0.8rem; display: block; }
-    .feat h3 { font-family: var(--mono); font-size: 0.92rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .feat p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+const LB_ROWS = [
+  { initials: 'RA', name: 'Riya Anand',  dept: 'CSE · 3rd Year', xp: '4,820', streak: '41d', blur: false },
+  { initials: 'VK', name: 'Vetri K',     dept: 'CSE · 2nd Year', xp: '4,310', streak: '29d', blur: false },
+  { initials: 'NS', name: 'Navya S',     dept: 'IT · 2nd Year',  xp: '3,980', streak: '22d', blur: false },
+  { initials: 'AP', name: 'Arjun P',     dept: 'ECE · 3rd Year', xp: '3,450', streak: '15d', blur: true },
+  { initials: 'ML', name: 'Meera L',     dept: 'CSE · 2nd Year', xp: '3,110', streak: '11d', blur: true },
+]
 
-    /* ── LEADERBOARD ── */
-    .leaderboard-section { background: var(--bg2); }
-    .lb-card {
-      background: var(--bg3); border: 1px solid var(--violet-border);
-      border-radius: 14px; overflow: hidden; max-width: 680px; margin: 0 auto;
-      box-shadow: 0 0 48px rgba(124,58,237,0.1);
-    }
-    .lb-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(124,58,237,0.18); display: flex; align-items: center; justify-content: space-between; }
-    .lb-title { font-family: var(--mono); font-size: 0.82rem; font-weight: 700; }
-    .lb-title span { color: var(--violet-light); }
-    .lb-live { font-family: var(--mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; color: var(--green); background: rgba(46,160,67,0.12); border: 1px solid rgba(46,160,67,0.3); padding: 0.2rem 0.6rem; border-radius: 999px; }
-    .lb-row { display: grid; grid-template-columns: 40px 1fr auto auto; align-items: center; gap: 1rem; padding: 0.9rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; }
-    .lb-row:last-child { border-bottom: none; }
-    .lb-row:hover { background: rgba(124,58,237,0.05); }
-    .lb-rank { font-family: var(--mono); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-align: center; }
-    .lb-rank.gold { color: #F0A500; } .lb-rank.silver { color: #9CA3AF; } .lb-rank.bronze { color: #B45309; }
-    .lb-user { display: flex; align-items: center; gap: 0.65rem; }
-    .lb-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
-    .lb-name { font-family: var(--mono); font-size: 0.82rem; font-weight: 600; }
-    .lb-dept { font-size: 0.7rem; color: var(--text-muted); }
-    .lb-xp { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; color: var(--violet-light); text-align: right; }
-    .lb-streak { font-family: var(--mono); font-size: 0.72rem; color: var(--gold); text-align: right; white-space: nowrap; }
-    .lb-footer { padding: 1rem 1.5rem; text-align: center; border-top: 1px solid rgba(124,58,237,0.18); }
-    .lb-footer p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+const HERO_METRICS = [
+  { value: 'SM-2', label: 'Review engine' },
+  { value: '4', label: 'Mastery levels' },
+  { value: '14d', label: 'Max interval' },
+  { value: '∞', label: 'Problems' },
+]
 
-    /* ── CTA BAND ── */
-    .cta-band { text-align: center; padding: 6rem 1.5rem; position: relative; overflow: hidden; }
-    .cta-band::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(124,58,237,0.16) 0%, transparent 65%); pointer-events: none; }
-    .cta-band h2 { font-family: var(--mono); font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
-    .cta-band p { font-size: 1rem; color: var(--text-muted); margin-bottom: 2rem; }
-    .cta-btn-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+const DEMO_QUEUE_TAGS = ['Arrays', 'DP', 'Binary Search', 'Graphs']
 
-    /* ── FOOTER ── */
-    footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 2rem 1.5rem; text-align: center; }
-    .footer-logo { font-family: var(--mono); font-size: 1rem; font-weight: 800; margin-bottom: 0.4rem; }
-    .footer-logo span { color: var(--violet); }
-    .footer-tagline { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.5rem; }
-    .footer-copy { font-size: 0.72rem; color: var(--text-dim); }
+const HOW_IT_WORKS = [
+  { n: '01', title: 'Log after solving', body: 'Title, link, topic, a quick note on your approach. Under 30 seconds. LeetCode, GFG, contest problems — any platform.' },
+  { n: '02', title: 'Recall first, then reveal', body: 'Notes are hidden on every card. Force your brain to retrieve the approach before checking. Active recall — the mechanism that builds durable memory.' },
+  { n: '03', title: 'Show up when scheduled', body: 'Again · 1d    Hard · 3d    Good · 7d    Master · 14d\n\nYour queue updates automatically every morning. No planning required.' },
+]
 
-    /* ── MODAL OVERLAY ── */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0; z-index: 500;
-      background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
-      align-items: center; justify-content: center; padding: 1rem;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--bg2); border: 1px solid var(--violet-border);
-      border-radius: 16px; width: 100%; max-width: 420px;
-      padding: 2.25rem; position: relative;
-      box-shadow: 0 0 60px rgba(124,58,237,0.2);
-      animation: modalIn 0.22s ease;
-    }
-    @keyframes modalIn { from { opacity:0; transform: scale(0.96) translateY(8px); } to { opacity:1; transform: none; } }
-    .modal-close {
-      position: absolute; top: 1.1rem; right: 1.1rem;
-      background: transparent; border: none; color: var(--text-dim);
-      font-size: 1.2rem; cursor: pointer; line-height: 1;
-      transition: color 0.15s;
-    }
-    .modal-close:hover { color: var(--text); }
-    .modal-logo { font-family: var(--mono); font-size: 1rem; font-weight: 800; margin-bottom: 0.3rem; }
-    .modal-logo span { color: var(--violet); }
-    .modal h2 { font-family: var(--mono); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.35rem; }
-    .modal-sub { font-size: 0.83rem; color: var(--text-muted); margin-bottom: 1.75rem; }
-    .modal-sub a { color: var(--violet-light); text-decoration: none; cursor: pointer; }
-    .modal-sub a:hover { text-decoration: underline; }
+const FAQ_ITEMS = [
+  { q: 'Does it support LeetCode, CodeChef, GFG?', a: 'Yes — log problems from any platform. Paste the link or just the title. Track-It doesn\'t care where the problem came from.' },
+  { q: 'How much time does logging a problem take?', a: 'Under 30 seconds. Title, topic, difficulty, and a short approach note. The SR scheduling happens automatically after that.' },
+  { q: 'Why is it restricted to @ch.students.amrita.edu?', a: 'The leaderboard and community layer only works if everyone on it is a real peer you know. Campus exclusivity is the feature, not the limitation.' },
+]
 
-    /* access note in modal */
-    .modal-access {
-      display: flex; align-items: center; gap: 0.5rem;
-      background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2);
-      border-radius: 8px; padding: 0.6rem 0.9rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.76rem; color: var(--text-muted);
-    }
-    .modal-access svg { flex-shrink: 0; color: var(--violet); }
+const PLATFORMS = [
+  { name: 'LeetCode', color: '#F59E0B' },
+  { name: 'HackerRank', color: '#22C55E' },
+  { name: 'GeeksforGeeks', color: '#16A34A' },
+  { name: 'Codeforces', color: '#3B82F6' },
+  { name: 'CodeChef', color: '#8B5CF6' },
+  { name: 'CodeStudio', color: '#EC4899' },
+  { name: 'InterviewBit', color: '#F97316' },
+  { name: 'AtCoder', color: '#0EA5E9' },
+]
 
-    .field-group { margin-bottom: 1.1rem; }
-    .field-group label { display: block; font-family: var(--mono); font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; letter-spacing: 0.04em; text-transform: uppercase; }
-    .field-group input, .field-group select {
-      width: 100%; background: var(--bg3); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 0.7rem 0.9rem;
-      color: var(--text); font-family: var(--body); font-size: 0.88rem;
-      outline: none; transition: border-color 0.2s;
-      appearance: none;
-    }
-    .field-group input::placeholder { color: var(--text-dim); }
-    .field-group input:focus, .field-group select:focus { border-color: var(--violet-border); }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
-    .btn-full {
-      width: 100%; background: var(--violet); color: #fff; border: none;
-      padding: 0.85rem; border-radius: 8px;
-      font-family: var(--mono); font-size: 0.92rem; font-weight: 700;
-      cursor: pointer; transition: background 0.2s; margin-top: 0.5rem;
-      box-shadow: 0 0 20px rgba(124,58,237,0.35);
-    }
-    .btn-full:hover { background: var(--violet-light); }
-    .modal-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0; }
-    .modal-divider hr { flex: 1; border: none; border-top: 1px solid rgba(255,255,255,0.08); }
-    .modal-divider span { font-size: 0.72rem; color: var(--text-dim); white-space: nowrap; }
+const JOURNEY_STEPS = [
+  { icon: '✎', title: 'Log it',    desc: 'Solve on any platform, log the approach in under 30 seconds.' },
+  { icon: '◎', title: 'Recall it', desc: 'Come back before you forget — active recall, not re-reading.' },
+  { icon: '⟳', title: 'Review it', desc: 'SM-2 schedules the next check-in at just the right interval.' },
+  { icon: '▲', title: 'Track it',  desc: 'Weak Topic Radar shows exactly where to focus next.' },
+  { icon: '⚡', title: 'Master it', desc: 'Consistent reviews turn into durable, interview-ready recall.' },
+]
 
-    /* toast */
-    .toast {
-      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
-      background: var(--bg3); border: 1px solid var(--violet-border);
-      border-radius: 10px; padding: 0.75rem 1.25rem;
-      font-family: var(--mono); font-size: 0.8rem; color: var(--text);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      z-index: 999; opacity: 0; transition: opacity 0.25s;
-      pointer-events: none; white-space: nowrap;
-    }
-    .toast.show { opacity: 1; }
-
-    /* ── FIELD ERROR / SUCCESS STATES ── */
-    .field-group { position: relative; }
-    .field-group input.err, .field-group select.err {
-      border-color: rgba(239,68,68,0.6) !important;
-      background: rgba(239,68,68,0.04);
-    }
-    .field-group input.ok, .field-group select.ok {
-      border-color: rgba(46,160,67,0.5) !important;
-    }
-    .field-err {
-      font-size: 0.7rem; color: #F87171;
-      margin-top: 0.3rem; display: none;
-      font-family: var(--mono);
-    }
-    .field-err.visible { display: block; }
-    .field-hint {
-      font-size: 0.68rem; color: var(--text-dim);
-      margin-top: 0.28rem; font-family: var(--mono);
-    }
-    /* password strength bar */
-    .pwd-strength { margin-top: 0.45rem; }
-    .pwd-bar-track {
-      height: 3px; background: rgba(255,255,255,0.08);
-      border-radius: 2px; overflow: hidden;
-    }
-    .pwd-bar-fill {
-      height: 100%; width: 0%; border-radius: 2px;
-      transition: width 0.3s, background 0.3s;
-    }
-    .pwd-label {
-      font-size: 0.65rem; color: var(--text-dim);
-      font-family: var(--mono); margin-top: 0.2rem;
-    }
-    /* password toggle eye */
-    .pwd-wrap { position: relative; }
-    .pwd-wrap input { padding-right: 2.5rem; }
-    .pwd-eye {
-      position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
-      background: none; border: none; color: var(--text-dim);
-      cursor: pointer; padding: 0; line-height: 1;
-      transition: color 0.15s;
-    }
-    .pwd-eye:hover { color: var(--text-muted); }
-    /* match indicator */
-    .match-row {
-      display: flex; align-items: center; gap: 0.4rem;
-      font-size: 0.68rem; font-family: var(--mono);
-      margin-top: 0.3rem; color: var(--text-dim);
-      min-height: 1rem;
-    }
-    .match-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--text-dim); flex-shrink: 0;
-      transition: background 0.2s;
-    }
-    .match-dot.ok  { background: #4ADE80; }
-    .match-dot.err { background: #F87171; }
-    .match-row.ok  { color: #4ADE80; }
-    .match-row.err { color: #F87171; }
-
-    /* scrollbar */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--violet-dim); border-radius: 3px; }
-
-    /* ── WORKSPACE PREVIEW SECTION ── */
-    .ws-section { background: var(--bg); overflow: hidden; }
-    .ws-browser {
-      border: 1px solid rgba(124,58,237,0.3);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 0 80px rgba(124,58,237,0.15), 0 24px 64px rgba(0,0,0,0.5);
-      max-width: 1060px;
-      margin: 0 auto;
-    }
-    /* browser chrome bar */
-    .ws-chrome {
-      background: #1A2332;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      padding: 0.55rem 0.9rem;
-      display: flex; align-items: center; gap: 0.65rem;
-    }
-    .ws-dots { display: flex; gap: 0.35rem; }
-    .ws-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .ws-dot.r { background: #FF5F57; }
-    .ws-dot.y { background: #FFBD2E; }
-    .ws-dot.g { background: #28CA42; }
-    .ws-url {
-      flex: 1; background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 5px; padding: 0.28rem 0.7rem;
-      font-family: var(--mono); font-size: 0.68rem;
-      color: var(--text-muted); text-align: center;
-    }
-    .ws-url span { color: var(--violet-light); }
-    /* workspace inner layout */
-    .ws-inner {
-      display: grid;
-      grid-template-columns: 1fr 260px;
-      height: 480px;
-      background: #0D1117;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-    }
-    /* top nav strip */
-    .ws-topbar {
-      grid-column: 1 / -1;
-      background: #10161E;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      display: flex; align-items: center; gap: 0.6rem;
-      padding: 0 0.9rem; height: 38px; flex-shrink: 0;
-    }
-    .ws-logo { font-weight: 800; font-size: 0.85rem; color: #E6EDF3; }
-    .ws-logo span { color: #7C3AED; }
-    .ws-prob-pill {
-      background: #141B25; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 5px; padding: 0.2rem 0.6rem;
-      font-size: 0.68rem; color: #8B949E;
-    }
-    .ws-diff { font-size: 0.62rem; font-weight: 700; padding: 0.18rem 0.5rem; border-radius: 999px; background: rgba(74,222,128,0.12); color: #4ADE80; border: 1px solid rgba(74,222,128,0.3); }
-    .ws-spacer { flex: 1; }
-    .ws-run { background: #1A2332; border: 1px solid rgba(255,255,255,0.1); color: #8B949E; padding: 0.22rem 0.65rem; border-radius: 5px; font-size: 0.68rem; font-family: var(--mono); }
-    .ws-submit { background: #7C3AED; color: #fff; border: none; padding: 0.22rem 0.65rem; border-radius: 5px; font-size: 0.68rem; font-family: var(--mono); font-weight: 700; }
-    /* left col */
-    .ws-left {
-      display: flex; flex-direction: column;
-      border-right: 1px solid rgba(255,255,255,0.06);
-      overflow: hidden;
-    }
-    /* problem pane */
-    .ws-prob {
-      padding: 0.8rem 1rem;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      flex: 0 0 auto;
-    }
-    .ws-ptitle { font-weight: 800; font-size: 0.82rem; color: #E6EDF3; margin-bottom: 0.4rem; }
-    .ws-topics { display: flex; gap: 0.3rem; margin-bottom: 0.5rem; }
-    .ws-topic { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #9B5AF5; padding: 0.12rem 0.45rem; border-radius: 4px; font-size: 0.6rem; font-weight: 600; }
-    .ws-pdesc { color: #8B949E; font-family: 'Inter', sans-serif; font-size: 0.72rem; line-height: 1.55; }
-    .ws-pdesc strong { color: #E6EDF3; }
-    .ws-example {
-      background: #141B25; border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 5px; padding: 0.45rem 0.65rem; margin-top: 0.5rem;
-      font-size: 0.68rem; color: #8B949E; line-height: 1.55;
-    }
-    .ws-example .ex-lbl { color: #7C3AED; font-weight: 700; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
-    /* editor pane */
-    .ws-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .ws-edbar {
-      background: #10161E; border-bottom: 1px solid rgba(255,255,255,0.06);
-      padding: 0 0.75rem; display: flex; align-items: center; gap: 2px; height: 30px;
-    }
-    .ws-ltab {
-      font-size: 0.65rem; font-weight: 600; font-family: var(--mono);
-      padding: 0.2rem 0.6rem; border-radius: 4px; border: none;
-      cursor: pointer; transition: all .15s; color: #8B949E; background: transparent;
-    }
-    .ws-ltab.active { background: rgba(124,58,237,0.15); color: #9B5AF5; border: 1px solid rgba(124,58,237,0.3); }
-    .ws-code-area {
-      flex: 1; display: flex; overflow: hidden;
-      background: #10161E;
-    }
-    .ws-lnums {
-      width: 32px; padding: 0.6rem 0; text-align: right; padding-right: 0.45rem;
-      color: #4A5568; font-size: 0.68rem; line-height: 1.65;
-      border-right: 1px solid rgba(255,255,255,0.04);
-      user-select: none;
-    }
-    .ws-code {
-      flex: 1; padding: 0.6rem 0.75rem; font-size: 0.72rem; line-height: 1.65;
-      color: #E6EDF3; white-space: pre; overflow: auto;
-    }
-    .ws-code::-webkit-scrollbar { width: 3px; }
-    .ws-code::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.2); }
-    /* syntax highlight colours */
-    .kw  { color: #c792ea; } /* keyword */
-    .fn  { color: #82aaff; } /* function */
-    .st  { color: #c3e88d; } /* string */
-    .cm  { color: #546e7a; font-style: italic; } /* comment */
-    .nm  { color: #f78c6c; } /* number/variable */
-    .op  { color: #89ddff; } /* operator/punct */
-    /* bottom strip */
-    .ws-bottom {
-      border-top: 1px solid rgba(255,255,255,0.06);
-      flex-shrink: 0; height: 80px; background: #0D1117;
-    }
-    .ws-btabs {
-      background: #10161E; border-bottom: 1px solid rgba(255,255,255,0.06);
-      display: flex; height: 26px; align-items: center;
-    }
-    .ws-btab {
-      font-size: 0.62rem; font-family: var(--mono); font-weight: 600;
-      padding: 0 0.7rem; height: 100%; display: flex; align-items: center;
-      color: #8B949E; border-bottom: 2px solid transparent;
-    }
-    .ws-btab.active { color: #9B5AF5; border-bottom-color: #7C3AED; }
-    .ws-tcrow {
-      padding: 0.35rem 0.8rem; display: flex; align-items: center; gap: 0.5rem;
-    }
-    .ws-tcn { color: #7C3AED; font-size: 0.62rem; font-weight: 700; }
-    .ws-tctxt { color: #8B949E; font-size: 0.65rem; flex: 1; }
-    .ws-tcpass { color: #4ADE80; font-size: 0.62rem; font-weight: 700; }
-    /* right notes col */
-    .ws-right {
-      display: flex; flex-direction: column; overflow: hidden;
-      background: #10161E;
-    }
-    .ws-nhdr {
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .ws-ntitle { font-weight: 700; font-size: 0.72rem; color: #E6EDF3; }
-    .ws-nsave {
-      background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3);
-      color: #9B5AF5; font-size: 0.6rem; font-weight: 700;
-      padding: 0.15rem 0.45rem; border-radius: 4px;
-    }
-    .ws-ntabs {
-      display: flex; border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .ws-ntab {
-      font-size: 0.6rem; font-family: var(--mono); font-weight: 600;
-      padding: 0.3rem 0.6rem; color: #8B949E;
-      border-bottom: 2px solid transparent;
-    }
-    .ws-ntab.active { color: #9B5AF5; border-bottom-color: #7C3AED; }
-    .ws-notes-body { flex: 1; overflow-y: auto; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.6rem; }
-    .ws-notes-body::-webkit-scrollbar { width: 3px; }
-    .ws-notes-body::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.2); }
-    .ws-nlabel { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7C3AED; margin-bottom: 0.25rem; }
-    .ws-ntext {
-      background: #141B25; border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 5px; padding: 0.45rem 0.55rem;
-      font-family: 'Inter', sans-serif; font-size: 0.68rem;
-      color: #8B949E; line-height: 1.55;
-    }
-    .ws-cx-row { display: flex; gap: 0.35rem; }
-    .ws-cx {
-      flex: 1; background: #141B25; border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 5px; padding: 0.35rem 0.5rem; text-align: center;
-    }
-    .ws-cx-lbl { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #8B949E; margin-bottom: 0.15rem; }
-    .ws-cx-val { font-size: 0.78rem; font-weight: 700; color: #9B5AF5; }
-    /* confidence */
-    .ws-conf { padding: 0.5rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); }
-    .ws-conf-lbl { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #8B949E; margin-bottom: 0.35rem; }
-    .ws-conf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; }
-    .ws-cb {
-      font-size: 0.65rem; font-weight: 700; font-family: var(--mono);
-      padding: 0.28rem 0.3rem; border-radius: 5px; text-align: center;
-      border: 1px solid transparent;
-    }
-    .ws-cb.low    { color: #F87171; border-color: rgba(248,113,113,0.25); background: rgba(248,113,113,0.08); }
-    .ws-cb.med    { color: #FBBF24; border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.08); }
-    .ws-cb.high   { color: #60A5FA; border-color: rgba(96,165,250,0.25); background: rgba(96,165,250,0.08); }
-    .ws-cb.master { color: #4ADE80; border-color: rgba(74,222,128,0.25); background: rgba(74,222,128,0.15); border-width: 1.5px; }
-    .ws-rev { padding: 0.45rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; }
-    .ws-rev-info { font-size: 0.62rem; color: #8B949E; }
-    .ws-rev-info strong { color: #9B5AF5; }
-    .ws-rev-btn { background: #7C3AED; color: #fff; border: none; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700; font-family: var(--mono); }
-    /* interactive tab switching */
-    .ws-ltab-panel { display: none; }
-    .ws-ltab-panel.active { display: flex; flex: 1; overflow: hidden; flex-direction: column; }
-    /* CTA below preview */
-    .ws-cta {
-      text-align: center; margin-top: 2.5rem;
-    }
-    .ws-cta p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem; }
-
-    @media (max-width: 640px) {
-      nav { padding: 0.85rem 1rem; }
-      .lb-row { grid-template-columns: 32px 1fr auto; }
-      .lb-streak { display: none; }
-      .field-row { grid-template-columns: 1fr; }
-      .ws-inner { grid-template-columns: 1fr; height: auto; }
-      .ws-right { display: none; }
-      .ws-inner { height: 520px; }
-    }
-  </style>
-</head>
-<body>
-
-<!-- ── NAV ── -->
-<nav>
-  <a class="nav-logo" href="#">Algo<span>Track</span></a>
-  <div class="nav-right">
-    <a class="btn-nav-ghost" href="#" onclick="openModal('signin');return false;">Sign In</a>
-    <a class="btn-nav-primary" href="#" onclick="openModal('signup');return false;">Create Account</a>
-  </div>
-</nav>
-
-<!-- ── HERO ── -->
-<section class="hero">
-  <div class="hero-grid"></div>
-  <div class="hero-glow"></div>
-
-  <div class="access-note">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-    Requires an Amrita Chennai student email to register
-  </div>
-
-  <h1>Algo<span class="accent">Track</span></h1>
-
-  <p class="hero-sub">
-    AlgoTrack uses spaced repetition to turn every problem you solve into a problem you <em>actually remember</em>.
-    Log it. Rate it. Review it exactly when you're about to forget.
-  </p>
-
-  <div class="hero-actions">
-    <a href="#" class="btn-primary" onclick="openModal('signup');return false;">Create Free Account</a>
-    <a href="#how" class="btn-ghost">See how it works</a>
-  </div>
-
-  <div class="hero-stat-row">
-    <div class="hero-stat"><div class="num">3×</div><div class="lbl">Retention boost</div></div>
-    <div class="hero-stat"><div class="num">4</div><div class="lbl">Confidence levels</div></div>
-    <div class="hero-stat"><div class="num">∞</div><div class="lbl">Problems tracked</div></div>
-  </div>
-</section>
-
-<!-- ── HOW IT WORKS ── -->
-<section class="hiw" id="how">
-  <div class="section-inner">
-    <div class="section-header">
-      <div class="section-label">// How It Works</div>
-      <h2 class="section-title">Three steps to never forgetting a problem again.</h2>
-      <p class="section-sub">No new habits to build. Log, rate, and show up when AlgoTrack tells you to.</p>
+// ── Cosmic hero background (dark mode) ──────────────────────────────────────
+function CosmicBackground({ fixed }) {
+  const stars = React.useMemo(() => Array.from({ length: 70 }).map((_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: 1 + Math.random() * 2,
+    delay: Math.random() * 4,
+    duration: 2 + Math.random() * 3,
+  })), [])
+  return (
+    <div className={`cosmic-bg${fixed ? ' fixed-bg' : ''}`}>
+      <div className="cosmic-base" />
+      <div className="cosmic-blob cosmic-blob-1" />
+      <div className="cosmic-blob cosmic-blob-2" />
+      <div className="cosmic-blob cosmic-blob-3" />
+      <div className="cosmic-blob cosmic-blob-4" />
+      {stars.map(s => (
+        <div key={s.id} className="cosmic-star" style={{
+          left: `${s.left}%`, top: `${s.top}%`,
+          width: `${s.size}px`, height: `${s.size}px`,
+          animationDelay: `${s.delay}s`, animationDuration: `${s.duration}s`,
+        }} />
+      ))}
     </div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">Step 01</div>
-        <span class="step-icon">📝</span>
-        <h3>Log a problem after solving it</h3>
-        <p>Add the problem, topic, and a quick note on your approach. Takes under 30 seconds. Works for LeetCode, textbook exercises, contest problems — anything.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">Step 02</div>
-        <span class="step-icon">🎯</span>
-        <h3>Rate your confidence honestly</h3>
-        <p>Be real with yourself. Pick how it felt:</p>
-        <div class="confidence-pills">
-          <span class="pill again">Again</span>
-          <span class="pill hard">Hard</span>
-          <span class="pill good">Good</span>
-          <span class="pill master">Master</span>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">Step 03</div>
-        <span class="step-icon">📅</span>
-        <h3>AlgoTrack schedules your review</h3>
-        <p>The SM-2 spaced repetition algorithm calculates exactly when you need to see each problem again — right before your memory fades.</p>
-      </div>
+  )
+}
+
+// ── Light mode "aurora" hero background ─────────────────────────────────────
+const SPARKLE_COLORS = ['#db2777', '#f472b6', '#3b82f6', '#0ea5e9']
+function LightAuroraBackground({ fixed }) {
+  const sparkles = React.useMemo(() => Array.from({ length: 50 }).map((_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: 3 + Math.random() * 3,
+    color: SPARKLE_COLORS[i % SPARKLE_COLORS.length],
+    delay: Math.random() * 4,
+    duration: 2.4 + Math.random() * 2.6,
+  })), [])
+  return (
+    <div className={`aurora-bg${fixed ? ' fixed-bg' : ''}`}>
+      <div className="aurora-base" />
+      <div className="aurora-blob aurora-blob-1" />
+      <div className="aurora-blob aurora-blob-2" />
+      <div className="aurora-blob aurora-blob-3" />
+      <div className="aurora-blob aurora-blob-4" />
+      {sparkles.map(s => (
+        <div key={s.id} className="aurora-sparkle" style={{
+          left: `${s.left}%`, top: `${s.top}%`,
+          width: `${s.size}px`, height: `${s.size}px`,
+          background: s.color,
+          animationDelay: `${s.delay}s`, animationDuration: `${s.duration}s`,
+        }} />
+      ))}
     </div>
-  </div>
-</section>
+  )
+}
 
-<!-- ── FEATURES ── -->
-<section id="features">
-  <div class="section-inner">
-    <div class="section-header">
-      <div class="section-label">// Features</div>
-      <h2 class="section-title">Everything you need to actually retain what you learn.</h2>
+// ── Flying rocket (hero) ─────────────────────────────────────────────────────
+// ── AI robot mascot (holding a laptop) ──────────────────────────────────────
+function RobotIcon({ size = 30 }) {
+  return (
+    <svg viewBox="0 0 64 64" width={size} height={size}>
+      <line x1="32" y1="6" x2="32" y2="1" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="32" cy="1" r="2" fill="#38BDF8" />
+      <rect x="19" y="5" width="26" height="19" rx="7" fill="#F4F4F5" stroke="#818CF8" strokeWidth="2" />
+      <circle cx="27" cy="15" r="2.2" fill="#1E293B" />
+      <circle cx="37" cy="15" r="2.2" fill="#1E293B" />
+      <rect x="15" y="26" width="34" height="23" rx="9" fill="#E5E7EB" stroke="#818CF8" strokeWidth="2" />
+      <circle cx="14" cy="39" r="4.5" fill="#818CF8" />
+      <circle cx="50" cy="39" r="4.5" fill="#818CF8" />
+      <rect x="20" y="31" width="24" height="15" rx="2" fill="#0EA5E9" stroke="#1E3A8A" strokeWidth="1.5" />
+      <rect x="22.5" y="33.5" width="19" height="9.5" rx="1" fill="#BAE6FD" />
+      <rect x="18" y="46" width="28" height="4" rx="2" fill="#38BDF8" stroke="#1E3A8A" strokeWidth="1" />
+    </svg>
+  )
+}
+function useInView(threshold = 0.15) {
+  const ref = useRef(null)
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true) }, { threshold })
+    if (ref.current) obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [threshold])
+  return [ref, inView]
+}
+
+const PASSWORD_CRITERIA = [
+  { key: 'len',     label: 'At least 8 characters',       test: p => p.length >= 8 },
+  { key: 'upper',   label: 'One uppercase letter',         test: p => /[A-Z]/.test(p) },
+  { key: 'num',     label: 'One number',                   test: p => /[0-9]/.test(p) },
+  { key: 'special', label: 'One special character (!@#$)', test: p => /[!@#$%^&*(),.?":{}|<>_\-]/.test(p) },
+]
+
+// ── Floating-label input ────────────────────────────────────────────────────
+function FloatingInput({ label, optional, type = 'text', value, onChange, error, onFocusChange, C, autoComplete, shakeTick, name, rightAdornment }) {
+  const [focused, setFocused] = useState(false)
+  const floated = focused || (value && value.length > 0)
+  return (
+    <div
+      key={error ? `${name}-err-${shakeTick}` : name}
+      className={`floating-field${focused ? ' focused' : ''}${error ? ' field-error' : ''}`}
+    >
+      <div className="field-glow" />
+      <input
+        type={type}
+        value={value}
+        autoComplete={autoComplete}
+        onChange={onChange}
+        onFocus={() => { setFocused(true); onFocusChange && onFocusChange(true) }}
+        onBlur={() => { setFocused(false); onFocusChange && onFocusChange(false) }}
+        className="floating-input"
+        style={{
+          background: C.panel,
+          borderColor: error ? '#DC2626' : (focused ? '#818CF8' : C.border),
+          color: C.text,
+        }}
+      />
+      <label
+        className={`floating-label${floated ? ' floated' : ''}`}
+        style={{
+          color: floated ? (focused ? '#818CF8' : C.muted) : C.muted,
+          background: floated ? C.panel : 'transparent',
+        }}
+      >
+        {label}{optional ? <span style={{ opacity: 0.65 }}> (optional)</span> : null}
+      </label>
+      {rightAdornment}
     </div>
-    <div class="features-grid">
-      <div class="feat"><span class="feat-icon">🧠</span><h3>Spaced Repetition Engine</h3><p>SM-2 algorithm schedules each problem at the optimal interval. More reps where you're weak, fewer where you're strong.</p></div>
-      <div class="feat"><span class="feat-icon">🗂️</span><h3>Custom Topics</h3><p>Organize by subject, chapter, or your own tags. Filter your review queue by topic or due date. Your structure, your rules.</p></div>
-      <div class="feat"><span class="feat-icon">⚡</span><h3>XP + Rank System</h3><p>Earn XP for every review. Level up from Beginner → Adept → Expert → Legend. Watch your rank climb in real time.</p></div>
-      <div class="feat"><span class="feat-icon">🔥</span><h3>Streaks + Achievements</h3><p>Daily streaks keep you consistent. Unlock badges for milestones — 30-day streak, first 100 problems, mastering a full topic.</p></div>
-      <div class="feat"><span class="feat-icon">🏆</span><h3>Peer Leaderboard</h3><p>See where you stand among your batchmates. Weekly rankings reset — consistency beats short bursts, no shortcuts to the top.</p></div>
-      <div class="feat"><span class="feat-icon">📖</span><h3>Master Notebook</h3><p>Problems rated <em>Master</em> live here — your proof of mastery. Perfect for last-minute revision before exams or placements.</p></div>
-    </div>
-  </div>
-</section>
+  )
+}
 
-<!-- ── WORKSPACE PREVIEW ── -->
-<section class="ws-section" id="workspace">
-  <div class="section-inner">
-    <div class="section-header" style="text-align:center;max-width:600px;margin:0 auto 2.75rem;">
-      <div class="section-label">// Live Preview</div>
-      <h2 class="section-title">Your coding workspace, all in one place.</h2>
-      <p class="section-sub" style="margin:0 auto;">Problem statement, code editor, smart notes, and revision scheduling — side by side. Here's exactly what you'll see inside AlgoTrack.</p>
-    </div>
+// ── Password strength meter + criteria checklist ────────────────────────────
+function PasswordStrength({ password, C }) {
+  const passed = PASSWORD_CRITERIA.filter(c => c.test(password))
+  const score = passed.length
+  let color = '#DC2626', label = 'Weak'
+  if (score >= 4) { color = '#16A34A'; label = 'Strong' }
+  else if (score >= 2) { color = '#D97706'; label = 'Medium' }
 
-    <!-- Browser frame -->
-    <div class="ws-browser">
-      <!-- chrome bar -->
-      <div class="ws-chrome">
-        <div class="ws-dots">
-          <div class="ws-dot r"></div>
-          <div class="ws-dot y"></div>
-          <div class="ws-dot g"></div>
-        </div>
-        <div class="ws-url">algotrack.app/<span>workspace</span></div>
-      </div>
-
-      <!-- workspace grid: topbar + left + right -->
-      <div style="display:flex;flex-direction:column;height:480px;background:#0D1117;font-family:'JetBrains Mono',monospace;">
-
-        <!-- top nav strip -->
-        <div class="ws-topbar" style="grid-column:1/-1">
-          <span class="ws-logo">Algo<span>Track</span></span>
-          <div class="ws-prob-pill">1. Two Sum</div>
-          <span class="ws-diff">Easy</span>
-          <div class="ws-spacer"></div>
-          <!-- lang tabs in nav -->
-          <div style="display:flex;gap:2px;margin-right:0.5rem;">
-            <button class="ws-ltab active" onclick="wsSwitchLang('python',this)" style="cursor:pointer;">Python</button>
-            <button class="ws-ltab"        onclick="wsSwitchLang('java',this)"   style="cursor:pointer;">Java</button>
-            <button class="ws-ltab"        onclick="wsSwitchLang('c',this)"      style="cursor:pointer;">C</button>
+  return (
+    <div style={{ marginTop: '-8px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+        {PASSWORD_CRITERIA.map((c, i) => (
+          <div key={c.key} style={{ flex: 1, height: '5px', borderRadius: '3px', background: C.border, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: password && i < score ? '100%' : '0%',
+              background: color,
+              borderRadius: '3px',
+              transition: 'width 0.4s cubic-bezier(0.4,0,0.2,1), background 0.4s ease',
+            }} />
           </div>
-          <button class="ws-run">▶ Run</button>
-          <button class="ws-submit" style="cursor:pointer;" onclick="wsRunCode()">✓ Submit</button>
+        ))}
+      </div>
+      <div style={{ fontSize: '11px', fontWeight: 700, color, marginBottom: '10px', fontFamily: 'JetBrains Mono, monospace', height: '13px', transition: 'color 0.3s ease' }}>
+        {password ? label : ''}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        {PASSWORD_CRITERIA.map(c => {
+          const ok = c.test(password)
+          return (
+            <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: ok ? '#16A34A' : C.muted, transition: 'color 0.25s ease' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                width: '14px', height: '14px', borderRadius: '50%',
+                border: `1.5px solid ${ok ? '#16A34A' : C.border}`,
+                background: ok ? '#16A34A' : 'transparent',
+                transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+                transform: ok ? 'scale(1)' : 'scale(0.88)',
+              }}>
+                <span style={{ color: '#fff', fontSize: '9px', lineHeight: 1, opacity: ok ? 1 : 0, transition: 'opacity 0.15s ease' }}>✓</span>
+              </span>
+              {c.label}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Animated mascot ──────────────────────────────────────────────────────────
+function Mascot({ covering, C }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
+      <svg viewBox="0 0 200 170" width="108" height="92" className="mascot-float">
+        <ellipse cx="100" cy="150" rx="46" ry="8" fill={C.border} opacity="0.5" />
+        <line x1="100" y1="32" x2="100" y2="12" stroke={C.muted} strokeWidth="3" strokeLinecap="round" />
+        <circle cx="100" cy="9" r="6" fill="#818CF8" />
+        <circle cx="100" cy="90" r="56" fill={C.card} stroke={C.border} strokeWidth="3" />
+        <circle className="mascot-eye" cx="80" cy="88" r="7.5" fill={C.text} style={{ transformOrigin: '80px 88px', transform: covering ? 'scaleY(0.15)' : 'scaleY(1)' }} />
+        <circle className="mascot-eye" cx="120" cy="88" r="7.5" fill={C.text} style={{ transformOrigin: '120px 88px', transform: covering ? 'scaleY(0.15)' : 'scaleY(1)' }} />
+        <path d="M84 114 Q100 124 116 114" stroke={C.muted} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <g className={`mascot-hand${covering ? ' covering' : ''}`} style={{ transformOrigin: '78px 150px' }}>
+          <ellipse cx="78" cy="150" rx="17" ry="21" fill="#818CF8" />
+        </g>
+        <g className={`mascot-hand${covering ? ' covering' : ''}`} style={{ transformOrigin: '122px 150px' }}>
+          <ellipse cx="122" cy="150" rx="17" ry="21" fill="#38BDF8" />
+        </g>
+      </svg>
+    </div>
+  )
+}
+
+// ── Success checkmark + confetti ────────────────────────────────────────────
+const CONFETTI_COLORS = ['#f472b6', '#818cf8', '#38bdf8', '#facc15', '#4ade80', '#fb7185']
+function darkBgFor(C) { return C.bg === '#09090B' ? 'rgba(9,9,11,0.92)' : 'rgba(250,250,250,0.92)' }
+function SuccessOverlay({ name, C }) {
+  const confetti = React.useMemo(() => Array.from({ length: 70 }).map((_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    delay: Math.random() * 0.5,
+    duration: 2.4 + Math.random() * 1.6,
+    size: 6 + Math.random() * 7,
+    drift: (Math.random() - 0.5) * 240,
+    round: Math.random() > 0.5,
+  })), [])
+
+  return (
+    <div className="success-overlay" style={{ background: darkBgFor(C) }}>
+      {confetti.map(p => (
+        <div key={p.id} className="confetti-piece" style={{
+          left: `${p.left}%`,
+          width: `${p.size}px`,
+          height: `${p.size * 0.4}px`,
+          background: p.color,
+          borderRadius: p.round ? '50%' : '2px',
+          animationDelay: `${p.delay}s`,
+          animationDuration: `${p.duration}s`,
+          '--drift': `${p.drift}px`,
+        }} />
+      ))}
+      <div className="success-card" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        <svg viewBox="0 0 100 100" width="84" height="84">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#16A34A" strokeWidth="5" className="check-circle" />
+          <path d="M28 52 L44 68 L74 34" fill="none" stroke="#16A34A" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" className="check-path" />
+        </svg>
+        <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.2rem', fontWeight: 700, color: C.text, marginTop: '1rem' }}>Account created</h3>
+        <p style={{ fontSize: '13px', color: C.muted, marginTop: '6px' }}>Welcome{name ? `, ${name}` : ''}. Let's start retaining.</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Demo Card ─────────────────────────────────────────────────────────────────
+function DemoCard({ showToast, darkMode }) {
+  const [idx, setIdx] = useState(0)
+  const [revealed, setRevealed] = useState(false)
+  const [exiting, setExiting] = useState(false)
+  const [entering, setEntering] = useState(false)
+  const [xp, setXp] = useState(0)
+  const [reviewed, setReviewed] = useState(0)
+  const [lastXp, setLastXp] = useState(null)
+  const [hoveredBtn, setHoveredBtn] = useState(null)
+  const p = DEMO_PROBLEMS[idx]
+
+  const C = {
+    card: darkMode ? 'rgba(17,24,39,0.9)' : 'rgba(255,255,255,0.92)',
+    panel: darkMode ? 'rgba(15,23,42,0.85)' : 'rgba(248,250,252,0.88)',
+    border: darkMode ? '#1F2937' : '#E4E4E7',
+    text: darkMode ? '#F4F4F5' : '#201B4D',
+    muted: darkMode ? '#94A3B8' : '#756FA0',
+    sub: darkMode ? '#CBD5E1' : '#4B4380',
+  }
+
+  const rate = (level) => {
+    const gain = MASTERY[level].xp
+    setXp(x => x + gain)
+    setLastXp(gain)
+    setReviewed(r => r + 1)
+    if (showToast) showToast(`+${gain} XP · Log in to save your progress`, true)
+    setExiting(true)
+    setTimeout(() => {
+      setIdx(i => (i + 1) % DEMO_PROBLEMS.length)
+      setRevealed(false)
+      setExiting(false)
+      setEntering(true)
+      setTimeout(() => setEntering(false), 320)
+      setTimeout(() => setLastXp(null), 1200)
+    }, 300)
+  }
+
+  const pct = Math.min(100, Math.round((xp / 100) * 100))
+
+  return (
+    <div>
+      {/* XP row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: C.muted }}>
+          Novice · {xp} XP
+        </span>
+        <span style={{
+          fontFamily: 'JetBrains Mono, monospace', fontSize: '11px',
+          color: '#16A34A', opacity: lastXp ? 1 : 0,
+          transform: lastXp ? 'translateY(0)' : 'translateY(6px)',
+          transition: 'opacity 0.3s, transform 0.3s',
+        }}>
+          +{lastXp} XP ✓
+        </span>
+      </div>
+
+      {/* XP bar */}
+      <div style={{ height: '3px', background: C.border, borderRadius: '2px', marginBottom: '16px', overflow: 'hidden' }}>
+        <div style={{
+          height: '100%',
+          background: darkMode ? '#F4F4F5' : '#09090B',
+          width: pct + '%',
+          borderRadius: '2px',
+          transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }} />
+      </div>
+
+      {/* Card */}
+      <div style={{
+        background: C.card,
+        border: `1px solid ${C.border}`,
+        borderRadius: '12px',
+        padding: '20px',
+        minHeight: '270px',
+        opacity: exiting ? 0 : entering ? 0 : 1,
+        transform: exiting ? 'translateY(-12px) scale(0.98)' : entering ? 'translateY(8px)' : 'translateY(0) scale(1)',
+        transition: 'opacity 0.28s ease, transform 0.28s ease',
+        boxShadow: darkMode ? '0 8px 32px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.07)',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: C.text, marginBottom: '8px' }}>{p.title}</div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#16A34A', background: darkMode ? 'rgba(22,163,74,0.12)' : '#F0FDF4', border: darkMode ? '1px solid rgba(22,163,74,0.3)' : '1px solid #BBF7D0', padding: '2px 8px', borderRadius: '4px', fontFamily: 'JetBrains Mono, monospace' }}>
+                {p.difficulty}
+              </span>
+              {p.topics.map(t => (
+                <span key={t} style={{ fontSize: '11px', color: C.muted, background: C.panel, border: `1px solid ${C.border}`, padding: '2px 8px', borderRadius: '4px', fontFamily: 'JetBrains Mono, monospace' }}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: C.muted }}>{idx + 1}/{DEMO_PROBLEMS.length}</span>
         </div>
 
-        <!-- main two-col body -->
-        <div class="ws-inner" style="flex:1;overflow:hidden;">
-
-          <!-- LEFT -->
-          <div class="ws-left">
-            <!-- problem pane -->
-            <div class="ws-prob">
-              <div class="ws-ptitle">Two Sum</div>
-              <div class="ws-topics">
-                <span class="ws-topic">Arrays</span>
-                <span class="ws-topic">HashMap</span>
-              </div>
-              <div class="ws-pdesc">
-                Given an array of integers <strong>nums</strong> and an integer <strong>target</strong>, return <em>indices of the two numbers</em> that add up to target.
-                <div class="ws-example">
-                  <div class="ex-lbl">Example</div>
-                  <code>Input:  nums = [2,7,11,15], target = 9</code><br>
-                  <code>Output: [0,1]</code>
-                </div>
-              </div>
+        {/* Notes / Recall area */}
+        {!revealed ? (
+          <div style={{
+            background: C.panel,
+            border: `1px dashed ${C.border}`,
+            borderRadius: '8px',
+            padding: '22px',
+            textAlign: 'center',
+            marginBottom: '16px',
+          }}>
+            <div style={{ fontSize: '20px', marginBottom: '8px', color: C.muted, animation: 'pulse 2.5s ease-in-out infinite' }}>◎</div>
+            <div style={{ fontSize: '13px', color: C.muted, marginBottom: '14px', lineHeight: 1.5 }}>
+              Recall the approach before revealing.
             </div>
+            <button
+              onClick={() => setRevealed(true)}
+              style={{
+                background: C.text,
+                color: C.card,
+                border: 'none',
+                padding: '8px 18px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif',
+                transition: 'transform 0.1s ease, opacity 0.15s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.96)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+            >
+              Reveal approach
+            </button>
+          </div>
+        ) : (
+          <div style={{
+            background: C.panel,
+            border: `1px solid ${C.border}`,
+            borderRadius: '8px',
+            padding: '14px',
+            marginBottom: '16px',
+            fontSize: '13px',
+            color: C.text,
+            lineHeight: 1.7,
+            fontFamily: 'JetBrains Mono, monospace',
+            whiteSpace: 'pre-line',
+            animation: 'revealSlide 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}>
+            {p.notes}
+          </div>
+        )}
 
-            <!-- code editor -->
-            <div class="ws-editor">
-              <div class="ws-code-area" style="flex:1;">
-                <div class="ws-lnums" id="ws-lnums">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11</div>
-                <!-- Python panel -->
-                <div class="ws-ltab-panel active" id="wsp-python">
-                  <div class="ws-code" id="ws-code-python"><span class="kw">def</span> <span class="fn">twoSum</span><span class="op">(</span>nums<span class="op">,</span> target<span class="op">):</span>
-    seen <span class="op">=</span> <span class="op">{}</span>
-    <span class="kw">for</span> i<span class="op">,</span> num <span class="kw">in</span> <span class="fn">enumerate</span><span class="op">(</span>nums<span class="op">):</span>
-        diff <span class="op">=</span> target <span class="op">-</span> num
-        <span class="kw">if</span> diff <span class="kw">in</span> seen<span class="op">:</span>
-            <span class="kw">return</span> <span class="op">[</span>seen<span class="op">[</span>diff<span class="op">],</span> i<span class="op">]</span>
-        seen<span class="op">[</span>num<span class="op">]</span> <span class="op">=</span> i
+        {/* Mastery buttons */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4,1fr)',
+          gap: '6px',
+          opacity: revealed ? 1 : 0.2,
+          pointerEvents: revealed ? 'auto' : 'none',
+          transition: 'opacity 0.35s ease',
+        }}>
+          {Object.entries(MASTERY).map(([key, cfg], i) => {
+            const isHov = hoveredBtn === key
+            const bg = darkMode ? cfg.darkBg : cfg.bg
+            const border = darkMode ? cfg.darkBorder : cfg.border
+            return (
+              <button
+                key={key}
+                onClick={() => rate(key)}
+                onMouseEnter={() => setHoveredBtn(key)}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={{
+                  background: isHov ? cfg.color : bg,
+                  border: `1px solid ${isHov ? cfg.color : border}`,
+                  color: isHov ? '#fff' : cfg.color,
+                  padding: '8px 4px',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  textAlign: 'center',
+                  lineHeight: 1.4,
+                  transition: 'all 0.15s ease',
+                  transform: isHov ? 'translateY(-2px)' : 'translateY(0)',
+                  boxShadow: isHov ? `0 4px 12px ${cfg.color}44` : 'none',
+                  animation: revealed ? `btnAppear 0.3s ease ${i * 0.06}s both` : 'none',
+                }}
+              >
+                <span style={{ display: 'block', fontWeight: 700 }}>{cfg.label}</span>
+                <span style={{ display: 'block', fontSize: '10px', opacity: 0.75 }}>{cfg.interval}</span>
+              </button>
+            )
+          })}
+        </div>
 
-<span class="cm"># Test</span>
-<span class="fn">print</span><span class="op">(</span><span class="fn">twoSum</span><span class="op">([</span><span class="nm">2</span><span class="op">,</span><span class="nm">7</span><span class="op">,</span><span class="nm">11</span><span class="op">,</span><span class="nm">15</span><span class="op">],</span> <span class="nm">9</span><span class="op">))</span>   <span class="cm"># [0, 1]</span>
-<span class="fn">print</span><span class="op">(</span><span class="fn">twoSum</span><span class="op">([</span><span class="nm">3</span><span class="op">,</span><span class="nm">2</span><span class="op">,</span><span class="nm">4</span><span class="op">],</span> <span class="nm">6</span><span class="op">))</span>       <span class="cm"># [1, 2]</span></div>
-                </div>
-                <!-- Java panel -->
-                <div class="ws-ltab-panel" id="wsp-java">
-                  <div class="ws-code" id="ws-code-java"><span class="kw">import</span> java<span class="op">.</span>util<span class="op">.*;</span>
+        {!revealed && (
+          <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '11px', color: C.muted, fontFamily: 'JetBrains Mono, monospace' }}>
+            Reveal approach to rate
+          </div>
+        )}
+      </div>
 
-<span class="kw">class</span> <span class="fn">Solution</span> <span class="op">{</span>
-    <span class="kw">public int</span><span class="op">[]</span> <span class="fn">twoSum</span><span class="op">(</span><span class="kw">int</span><span class="op">[]</span> nums<span class="op">,</span> <span class="kw">int</span> target<span class="op">) {</span>
-        HashMap<span class="op">&lt;</span>Integer<span class="op">,</span> Integer<span class="op">&gt;</span> map <span class="op">=</span> <span class="kw">new</span> <span class="fn">HashMap</span><span class="op">&lt;&gt;();</span>
-        <span class="kw">for</span> <span class="op">(</span><span class="kw">int</span> i <span class="op">=</span> <span class="nm">0</span><span class="op">;</span> i <span class="op">&lt;</span> nums<span class="op">.</span>length<span class="op">;</span> i<span class="op">++) {</span>
-            <span class="kw">int</span> diff <span class="op">=</span> target <span class="op">-</span> nums<span class="op">[</span>i<span class="op">];</span>
-            <span class="kw">if</span> <span class="op">(</span>map<span class="op">.</span><span class="fn">containsKey</span><span class="op">(</span>diff<span class="op">)) {</span>
-                <span class="kw">return new int</span><span class="op">[]{</span>map<span class="op">.</span><span class="fn">get</span><span class="op">(</span>diff<span class="op">),</span> i<span class="op">};</span>
-            <span class="op">}</span>
-            map<span class="op">.</span><span class="fn">put</span><span class="op">(</span>nums<span class="op">[</span>i<span class="op">],</span> i<span class="op">);</span>
-        <span class="op">}</span>
-        <span class="kw">return new int</span><span class="op">[]{};</span>
-    <span class="op">}</span>
-<span class="op">}</span></div>
-                </div>
-                <!-- C panel -->
-                <div class="ws-ltab-panel" id="wsp-c">
-                  <div class="ws-code" id="ws-code-c"><span class="kw">#include</span> <span class="st">&lt;stdio.h&gt;</span>
-
-<span class="kw">void</span> <span class="fn">twoSum</span><span class="op">(</span><span class="kw">int</span> arr<span class="op">[],</span> <span class="kw">int</span> n<span class="op">,</span> <span class="kw">int</span> target<span class="op">) {</span>
-    <span class="kw">for</span> <span class="op">(</span><span class="kw">int</span> i <span class="op">=</span> <span class="nm">0</span><span class="op">;</span> i <span class="op">&lt;</span> n<span class="op">;</span> i<span class="op">++) {</span>
-        <span class="kw">for</span> <span class="op">(</span><span class="kw">int</span> j <span class="op">=</span> i<span class="op">+</span><span class="nm">1</span><span class="op">;</span> j <span class="op">&lt;</span> n<span class="op">;</span> j<span class="op">++) {</span>
-            <span class="kw">if</span> <span class="op">(</span>arr<span class="op">[</span>i<span class="op">] +</span> arr<span class="op">[</span>j<span class="op">] ==</span> target<span class="op">) {</span>
-                <span class="fn">printf</span><span class="op">(</span><span class="st">"[%d, %d]\n"</span><span class="op">,</span> i<span class="op">,</span> j<span class="op">);</span>
-                <span class="kw">return</span><span class="op">;</span>
-            <span class="op">}</span>
-        <span class="op">}</span>
-    <span class="op">}</span>
-<span class="op">}</span></div>
-                </div>
-              </div>
-
-              <!-- bottom test cases / output strip -->
-              <div class="ws-bottom">
-                <div class="ws-btabs">
-                  <div class="ws-btab active" id="ws-btab-tc"   onclick="wsShowBTab('tc')">  Test Cases</div>
-                  <div class="ws-btab"         id="ws-btab-out" onclick="wsShowBTab('out')">Output</div>
-                </div>
-                <div id="ws-panel-tc">
-                  <div class="ws-tcrow"><span class="ws-tcn">Case 1</span><span class="ws-tctxt">nums=[2,7,11,15], target=9 · Expected: [0,1]</span><span class="ws-tcpass" id="wstc1">—</span></div>
-                  <div class="ws-tcrow"><span class="ws-tcn">Case 2</span><span class="ws-tctxt">nums=[3,2,4], target=6 · Expected: [1,2]</span><span class="ws-tcpass" id="wstc2">—</span></div>
-                </div>
-                <div id="ws-panel-out" style="display:none;padding:0.4rem 0.8rem;font-size:0.7rem;">
-                  <span id="ws-out-txt" style="color:#546e7a;font-style:italic;">// Press Submit to run</span>
-                </div>
-              </div>
-            </div>
-          </div><!-- /ws-left -->
-
-          <!-- RIGHT notes -->
-          <div class="ws-right">
-            <div class="ws-nhdr">
-              <span class="ws-ntitle">📝 Notes</span>
-              <span class="ws-nsave">Save</span>
-            </div>
-            <div class="ws-ntabs">
-              <div class="ws-ntab active">Approach</div>
-              <div class="ws-ntab">Concepts</div>
-              <div class="ws-ntab">Mistakes</div>
-            </div>
-            <div class="ws-notes-body">
-              <div>
-                <div class="ws-nlabel">Logic / Approach</div>
-                <div class="ws-ntext">Traverse array once. Calculate complement = target − current. Check if complement exists in hashmap. If yes, return indices.</div>
-              </div>
-              <div>
-                <div class="ws-nlabel">Complexity</div>
-                <div class="ws-cx-row">
-                  <div class="ws-cx"><div class="ws-cx-lbl">Time</div><div class="ws-cx-val">O(n)</div></div>
-                  <div class="ws-cx"><div class="ws-cx-lbl">Space</div><div class="ws-cx-val">O(n)</div></div>
-                </div>
-              </div>
-              <div>
-                <div class="ws-nlabel">Key Concept</div>
-                <div class="ws-ntext">HashMap gives O(1) lookup. Store each number as we scan, check complement on the fly.</div>
-              </div>
-            </div>
-            <!-- confidence -->
-            <div class="ws-conf">
-              <div class="ws-conf-lbl">Confidence after solving</div>
-              <div class="ws-conf-grid">
-                <div class="ws-cb low">🔴 Low</div>
-                <div class="ws-cb med">🟡 Medium</div>
-                <div class="ws-cb high">🔵 High</div>
-                <div class="ws-cb master" id="ws-master-btn">🟢 Master</div>
-              </div>
-            </div>
-            <!-- revision -->
-            <div class="ws-rev">
-              <div class="ws-rev-info" id="ws-rev-info">Next review: <strong>14 days</strong></div>
-              <button class="ws-rev-btn" onclick="wsSchedule()">Save &amp; Schedule</button>
-            </div>
-          </div><!-- /ws-right -->
-
-        </div><!-- /ws-inner grid -->
-      </div><!-- /flex column -->
-    </div><!-- /ws-browser -->
-
-    <div class="ws-cta">
-      <p>Everything above is interactive — try switching the language tabs and hitting Submit.</p>
-      <a href="#" class="btn-primary" onclick="openModal('signup');return false;">Start Solving for Free →</a>
+      {reviewed > 0 && (
+        <div style={{
+          marginTop: '10px', textAlign: 'center',
+          fontSize: '11px', color: '#16A34A',
+          fontFamily: 'JetBrains Mono, monospace',
+          animation: 'fadeIn 0.3s ease',
+        }}>
+          {reviewed} reviewed this session · Log in to save your progress →
+        </div>
+      )}
     </div>
-  </div>
-</section>
+  )
+}
 
-<!-- ── LEADERBOARD PREVIEW ── -->
-<section class="leaderboard-section">
-  <div class="section-inner">
-    <div class="section-header" style="text-align:center;max-width:480px;margin:0 auto 3rem;">
-      <div class="section-label">// Leaderboard</div>
-      <h2 class="section-title">Your batchmates are already grinding.</h2>
-      <p class="section-sub">Rankings reset every week. Consistency wins — not cramming.</p>
-    </div>
-    <div class="lb-card">
-      <div class="lb-header">
-        <div class="lb-title">Weekly Leaderboard — <span>Amrita Chennai</span></div>
-        <div class="lb-live">LIVE</div>
-      </div>
-      <div class="lb-row">
-        <div class="lb-rank gold">🥇</div>
-        <div class="lb-user"><div class="lb-avatar" style="background:rgba(240,165,0,.15);color:#F0A500;">RA</div><div><div class="lb-name">Riya Anand</div><div class="lb-dept">CSE · 3rd Year</div></div></div>
-        <div class="lb-xp">4,820 XP</div><div class="lb-streak">🔥 41d</div>
-      </div>
-      <div class="lb-row">
-        <div class="lb-rank silver">🥈</div>
-        <div class="lb-user"><div class="lb-avatar" style="background:rgba(99,102,241,.15);color:#818CF8;">VK</div><div><div class="lb-name">Vetri Kumar</div><div class="lb-dept">CSE · 2nd Year</div></div></div>
-        <div class="lb-xp">4,310 XP</div><div class="lb-streak">🔥 29d</div>
-      </div>
-      <div class="lb-row">
-        <div class="lb-rank bronze">🥉</div>
-        <div class="lb-user"><div class="lb-avatar" style="background:rgba(236,72,153,.15);color:#F472B6;">NS</div><div><div class="lb-name">Navyasree S</div><div class="lb-dept">IT · 2nd Year</div></div></div>
-        <div class="lb-xp">3,980 XP</div><div class="lb-streak">🔥 22d</div>
-      </div>
-      <div class="lb-row">
-        <div class="lb-rank">4</div>
-        <div class="lb-user"><div class="lb-avatar" style="background:rgba(52,211,153,.15);color:#34D399;">AP</div><div><div class="lb-name">Arjun Prasad</div><div class="lb-dept">ECE · 3rd Year</div></div></div>
-        <div class="lb-xp">3,450 XP</div><div class="lb-streak">🔥 15d</div>
-      </div>
-      <div class="lb-row">
-        <div class="lb-rank">5</div>
-        <div class="lb-user"><div class="lb-avatar" style="background:rgba(251,191,36,.15);color:#FBBF24;">ML</div><div><div class="lb-name">Meera Lakshmi</div><div class="lb-dept">CSE · 2nd Year</div></div></div>
-        <div class="lb-xp">3,110 XP</div><div class="lb-streak">🔥 11d</div>
-      </div>
-      <div class="lb-footer">
-        <p>This could be your name at the top. Rankings update in real time.</p>
-        <a href="#" class="btn-primary" style="padding:.65rem 1.5rem;font-size:.82rem;" onclick="openModal('signup');return false;">Join and Compete →</a>
-      </div>
-    </div>
-  </div>
-</section>
+// ── Main ──────────────────────────────────────────────────────────────────────
+export default function Landing({
+  onSignIn = () => {},
+  onSignUp = () => {},
+  onForgotPassword = () => {},
+  darkMode: darkModeProp,
+  toggleDark: toggleDarkProp,
+}) {
+  const [modal, setModal] = useState(null)
+  const [forgot, setForgot] = useState(false)
+  const [toast, setToast] = useState({ show: false, msg: '', ok: true })
+  const [scrolled, setScrolled] = useState(false)
+  const [faqOpen, setFaqOpen] = useState(-1)
+  const [hoveredFeat, setHoveredFeat] = useState(null)
 
-<!-- ── CTA BAND ── -->
-<section class="cta-band" id="cta">
-  <div class="section-inner" style="position:relative;z-index:1;">
-    <h2>Your future self will thank you.</h2>
-    <p>The problems you skip reviewing today become the gaps in your placement test tomorrow.</p>
-    <div class="cta-btn-row">
-      <a href="#" class="btn-primary" style="font-size:1rem;padding:1rem 2.25rem;" onclick="openModal('signup');return false;">Create Free Account</a>
-      <a href="#" class="btn-ghost" style="font-size:1rem;padding:1rem 2.25rem;" onclick="openModal('signin');return false;">Sign In</a>
-    </div>
-    <p style="margin-top:1.1rem;font-size:0.76rem;color:var(--text-dim);">Requires a valid Amrita Chennai student email · No credit card needed</p>
-  </div>
-</section>
+  const [internalDark, setInternalDark] = useState(true)
+  const darkMode = darkModeProp !== undefined ? darkModeProp : internalDark
+  const toggleDark = toggleDarkProp || (() => setInternalDark(d => !d))
 
-<!-- ── FOOTER ── -->
-<footer>
-  <div class="footer-logo">Algo<span>Track</span></div>
-  <p class="footer-tagline">Built by Amrita Chennai students, for Amrita Chennai students.</p>
-  <p class="footer-copy">© 2025 AlgoTrack · All rights reserved</p>
-</footer>
+  const [su, setSu] = useState({ firstName: '', lastName: '', email: '', dept: '', year: '', password: '', confirmPassword: '' })
+  const [si, setSi] = useState({ email: '', password: '' })
+  const [fe, setFe] = useState('')
+  const [suErrors, setSuErrors] = useState({})
+  const [suShakeTick, setSuShakeTick] = useState(0)
+  const [suSubmitting, setSuSubmitting] = useState(false)
+  const [suSuccess, setSuSuccess] = useState(false)
+  const [pwFocused, setPwFocused] = useState(false)
 
-<!-- ════════════════════════════════════
-     SIGN UP MODAL  (AlgoTrack)
-════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-signup" onclick="handleOverlayClick(event,'signup')">
-  <div class="modal" style="max-width:460px;max-height:92vh;overflow-y:auto;">
-    <button class="modal-close" onclick="closeModal('signup')">✕</button>
+  const [heroRef, heroIn] = useInView(0.15)
+  const [curveRef, curveIn] = useInView(0.15)
+  const [howRef, howIn] = useInView(0.1)
+  const [journeyRef, journeyIn] = useInView(0.1)
+  const [featRef, featIn] = useInView(0.1)
+  const [lbRef, lbIn] = useInView(0.15)
+  const [faqRef, faqIn] = useInView(0.15)
+  const [ctaRef, ctaIn] = useInView(0.2)
 
-    <!-- branding -->
-    <div style="margin-bottom:0.2rem;">
-      <div class="modal-logo" style="font-size:1.15rem;">Algo<span>Track</span></div>
-      <p style="font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);margin-top:0.15rem;">
-        Smart coding prep · track · revise · retain
-      </p>
-    </div>
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 12)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
 
-    <h2 style="margin-top:0.9rem;">Create your account</h2>
-    <p class="modal-sub">Already have one? <a onclick="switchModal('signup','signin')">Sign in instead</a></p>
+  useEffect(() => {
+    document.body.style.overflow = modal ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [modal])
 
-    <div class="modal-access">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Requires a valid Amrita institutional email address
-    </div>
+  useEffect(() => {
+    const fn = e => { if (e.key === 'Escape') { setModal(null); setForgot(false) } }
+    window.addEventListener('keydown', fn)
+    return () => window.removeEventListener('keydown', fn)
+  }, [])
 
-    <!-- name row -->
-    <div class="field-row">
-      <div class="field-group">
-        <label>First Name <span style="color:#F87171">*</span></label>
-        <input type="text" placeholder="Navya" id="su-fname" oninput="clearErr('su-fname')" />
-        <div class="field-err" id="err-fname">First name is required.</div>
-      </div>
-      <div class="field-group">
-        <label>Last Name <span style="color:var(--text-dim);font-size:0.62rem;">(optional)</span></label>
-        <input type="text" placeholder="Sree" id="su-lname" />
-      </div>
-    </div>
-
-    <!-- email -->
-    <div class="field-group">
-      <label>Amrita Email <span style="color:#F87171">*</span></label>
-      <input type="email" placeholder="ch.sc.u4xxxxxxxx@ch.students.amrita.edu" id="su-email"
-             oninput="liveEmailCheck()" />
-      <div class="field-err" id="err-email">Only valid Amrita email addresses are allowed.</div>
-      <div class="field-hint">e.g. example@amrita.edu · example@students.amrita.edu · example@ch.students.amrita.edu</div>
-    </div>
-
-    <!-- dept + year -->
-    <div class="field-row">
-      <div class="field-group">
-        <label>Department <span style="color:#F87171">*</span></label>
-        <select id="su-dept" style="color:var(--text);" onchange="clearErr('su-dept')">
-          <option value="" disabled selected style="color:var(--text-dim);">Department</option>
-          <option>CSE</option><option>IT</option><option>ECE</option><option>EEE</option>
-          <option>MECH</option><option>CIVIL</option><option>AIDS</option><option>AIML</option>
-        </select>
-        <div class="field-err" id="err-dept">Please select your department.</div>
-      </div>
-      <div class="field-group">
-        <label>Year <span style="color:#F87171">*</span></label>
-        <select id="su-year" style="color:var(--text);" onchange="clearErr('su-year')">
-          <option value="" disabled selected style="color:var(--text-dim);">Year</option>
-          <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
-        </select>
-        <div class="field-err" id="err-year">Please select your year.</div>
-      </div>
-    </div>
-
-    <!-- password -->
-    <div class="field-group">
-      <label>Password <span style="color:#F87171">*</span></label>
-      <div class="pwd-wrap">
-        <input type="password" placeholder="Min. 8 characters" id="su-pwd"
-               oninput="updateStrength();liveMatchCheck()" />
-        <button class="pwd-eye" type="button" onclick="togglePwd('su-pwd',this)" tabindex="-1">
-          <svg id="eye-pwd" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-      </div>
-      <div class="pwd-strength">
-        <div class="pwd-bar-track"><div class="pwd-bar-fill" id="pwd-bar"></div></div>
-        <div class="pwd-label" id="pwd-label"></div>
-      </div>
-      <div class="field-err" id="err-pwd">Password must be at least 8 characters.</div>
-    </div>
-
-    <!-- confirm password -->
-    <div class="field-group">
-      <label>Confirm Password <span style="color:#F87171">*</span></label>
-      <div class="pwd-wrap">
-        <input type="password" placeholder="Re-enter your password" id="su-cpwd"
-               oninput="liveMatchCheck()" />
-        <button class="pwd-eye" type="button" onclick="togglePwd('su-cpwd',this)" tabindex="-1">
-          <svg id="eye-cpwd" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-      </div>
-      <div class="match-row" id="match-row"></div>
-      <div class="field-err" id="err-cpwd">Passwords do not match.</div>
-    </div>
-
-    <button class="btn-full" onclick="handleSignup()">Create Account →</button>
-    <div class="modal-divider"><hr/><span>Free forever · no card needed</span><hr/></div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════
-     SIGN IN MODAL
-════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-signin" onclick="handleOverlayClick(event,'signin')">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('signin')">✕</button>
-    <div class="modal-logo">Track<span>-It</span></div>
-    <h2>Welcome back</h2>
-    <p class="modal-sub">New here? <a onclick="switchModal('signin','signup')">Create an account</a></p>
-
-    <div class="modal-access">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Access is limited to Amrita Chennai student accounts
-    </div>
-
-    <div class="field-group"><label>Email</label><input type="email" placeholder="ch.sc.u4xxxxxxxx@ch.students.amrita.edu" id="si-email"/></div>
-    <div class="field-group"><label>Password</label><input type="password" placeholder="Your password" id="si-pwd"/></div>
-
-    <button class="btn-full" onclick="handleSignin()">Sign In →</button>
-
-    <div class="modal-divider"><hr/><span>Forgot password? Contact your admin</span><hr/></div>
-  </div>
-</div>
-
-<!-- ── TOAST ── -->
-<div class="toast" id="toast"></div>
-
-<script>
-  /* ── modal open/close ── */
-  function openModal(id) {
-    document.getElementById('modal-' + id).classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModal(id) {
-    document.getElementById('modal-' + id).classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  function switchModal(from, to) { closeModal(from); setTimeout(() => openModal(to), 120); }
-  function handleOverlayClick(e, id) { if (e.target === e.currentTarget) closeModal(id); }
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal('signup'); closeModal('signin'); }
-  });
-
-  /* ── toast ── */
-  function showToast(msg, duration = 3500) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), duration);
+  const showToast = (msg, ok = true) => {
+    setToast({ show: true, msg, ok })
+    setTimeout(() => setToast(t => ({ ...t, show: false })), 3500)
   }
 
-  /* ── email validation: accept amrita.edu / students.amrita.edu / *.students.amrita.edu ── */
-  function isAmritaEmail(email) {
-    return /^[^\s@]+@(([a-z0-9-]+\.)?students\.amrita\.edu|amrita\.edu)$/i.test(email.trim());
+  const openModal = m => { setModal(m); setForgot(false) }
+  const closeModal = () => { setModal(null); setForgot(false) }
+  const switchModal = to => { closeModal(); setTimeout(() => setModal(to), 120) }
+  const overlayClick = e => { if (e.target === e.currentTarget) closeModal() }
+
+  const suPasswordValid = PASSWORD_CRITERIA.every(c => c.test(su.password))
+
+  const validateSignup = () => {
+    const errs = {}
+    if (!su.firstName.trim()) errs.firstName = true
+    if (!su.email.trim() || !isAmritaEmail(su.email)) errs.email = true
+    if (!su.dept) errs.dept = true
+    if (!su.year) errs.year = true
+    if (!suPasswordValid) errs.password = true
+    if (!su.confirmPassword || su.confirmPassword !== su.password) errs.confirmPassword = true
+    return errs
   }
 
-  /* ── live email check ── */
-  function liveEmailCheck() {
-    const val = document.getElementById('su-email').value.trim();
-    if (!val) { clearErr('su-email'); return; }
-    if (isAmritaEmail(val)) {
-      setOk('su-email'); hideErr('err-email');
-    } else {
-      setErr('su-email'); showErr('err-email', 'Only valid Amrita email addresses are allowed.');
+  const handleSignup = async () => {
+    const errs = validateSignup()
+    if (Object.keys(errs).length) {
+      setSuErrors(errs)
+      setSuShakeTick(t => t + 1)
+      if (errs.email && !isAmritaEmail(su.email) && su.email) showToast('Track-It is exclusive to Amrita Chennai students.', false)
+      else showToast('Check the highlighted fields.', false)
+      return
     }
-  }
-
-  /* ── password strength ── */
-  function updateStrength() {
-    const pwd = document.getElementById('su-pwd').value;
-    const bar = document.getElementById('pwd-bar');
-    const lbl = document.getElementById('pwd-label');
-    let score = 0;
-    if (pwd.length >= 8)  score++;
-    if (pwd.length >= 12) score++;
-    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-    const levels = [
-      { w:'0%',   c:'transparent',  t:'' },
-      { w:'25%',  c:'#F87171',      t:'Weak' },
-      { w:'50%',  c:'#FBBF24',      t:'Fair' },
-      { w:'75%',  c:'#60A5FA',      t:'Good' },
-      { w:'100%', c:'#4ADE80',      t:'Strong' },
-    ];
-    const lvl = levels[Math.min(score, 4)];
-    bar.style.width = lvl.w; bar.style.background = lvl.c;
-    lbl.textContent = lvl.t; lbl.style.color = lvl.c;
-    clearErr('su-pwd');
-  }
-
-  /* ── live password match ── */
-  function liveMatchCheck() {
-    const p1 = document.getElementById('su-pwd').value;
-    const p2 = document.getElementById('su-cpwd').value;
-    const row = document.getElementById('match-row');
-    if (!p2) { row.innerHTML = ''; return; }
-    if (p1 === p2) {
-      row.className = 'match-row ok';
-      row.innerHTML = '<span class="match-dot ok"></span> Passwords match';
-      hideErr('err-cpwd');
-    } else {
-      row.className = 'match-row err';
-      row.innerHTML = '<span class="match-dot err"></span> Passwords do not match';
+    setSuErrors({})
+    setSuSubmitting(true)
+    try {
+      const r = await onSignUp(su.email, su.password)
+      if (r?.error) {
+        setSuSubmitting(false)
+        showToast(r.error.message || 'Signup failed.', false)
+        return
+      }
+    } catch (e) {
+      setSuSubmitting(false)
+      showToast('Something went wrong.', false)
+      return
     }
-  }
-
-  /* ── toggle password visibility ── */
-  function togglePwd(inputId, btn) {
-    const inp = document.getElementById(inputId);
-    const isHidden = inp.type === 'password';
-    inp.type = isHidden ? 'text' : 'password';
-    btn.querySelector('svg').style.opacity = isHidden ? '1' : '0.45';
-  }
-
-  /* ── field state helpers ── */
-  function setErr(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.add('err'); el.classList.remove('ok'); }
-  }
-  function setOk(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.add('ok'); el.classList.remove('err'); }
-  }
-  function clearErr(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.remove('err','ok'); }
-  }
-  function showErr(errId, msg) {
-    const el = document.getElementById(errId);
-    if (el) { el.textContent = msg; el.classList.add('visible'); }
-  }
-  function hideErr(errId) {
-    const el = document.getElementById(errId);
-    if (el) el.classList.remove('visible');
-  }
-  function fieldErr(inputId, errId, msg) {
-    setErr(inputId); showErr(errId, msg);
-  }
-  function fieldOk(inputId, errId) {
-    setOk(inputId); hideErr(errId);
-  }
-
-  /* ── SIGN UP handler ── */
-  function handleSignup() {
-    let valid = true;
-
-    const fname = document.getElementById('su-fname').value.trim();
-    const email = document.getElementById('su-email').value.trim();
-    const dept  = document.getElementById('su-dept').value;
-    const year  = document.getElementById('su-year').value;
-    const pwd   = document.getElementById('su-pwd').value;
-    const cpwd  = document.getElementById('su-cpwd').value;
-
-    // first name (required)
-    if (!fname) {
-      fieldErr('su-fname','err-fname','First name is required.'); valid = false;
-    } else { fieldOk('su-fname','err-fname'); }
-
-    // email (required + amrita domain)
-    if (!email) {
-      fieldErr('su-email','err-email','Email is required.'); valid = false;
-    } else if (!isAmritaEmail(email)) {
-      fieldErr('su-email','err-email','Only valid Amrita email addresses are allowed.'); valid = false;
-    } else { fieldOk('su-email','err-email'); }
-
-    // dept
-    if (!dept) {
-      fieldErr('su-dept','err-dept','Please select your department.'); valid = false;
-    } else { fieldOk('su-dept','err-dept'); }
-
-    // year
-    if (!year) {
-      fieldErr('su-year','err-year','Please select your year.'); valid = false;
-    } else { fieldOk('su-year','err-year'); }
-
-    // password length
-    if (pwd.length < 8) {
-      fieldErr('su-pwd','err-pwd','Password must be at least 8 characters.'); valid = false;
-    } else { fieldOk('su-pwd','err-pwd'); }
-
-    // confirm password match
-    if (!cpwd) {
-      fieldErr('su-cpwd','err-cpwd','Please confirm your password.'); valid = false;
-    } else if (pwd !== cpwd) {
-      fieldErr('su-cpwd','err-cpwd','Passwords do not match.'); valid = false;
-    } else { fieldOk('su-cpwd','err-cpwd'); }
-
-    if (!valid) return;
-
-    closeModal('signup');
-    showToast(`✅ Account created! Welcome to AlgoTrack, ${fname}.`, 4000);
-  }
-
-  /* ── WORKSPACE PREVIEW INTERACTIONS ── */
-  function wsSwitchLang(lang, btn) {
-    document.querySelectorAll('.ws-ltab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.ws-ltab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('wsp-' + lang).classList.add('active');
-    // update line numbers to match content
-    const lineMap = { python: 11, java: 15, c: 13 };
-    document.getElementById('ws-lnums').textContent =
-      Array.from({ length: lineMap[lang] || 11 }, (_, i) => i + 1).join('\n');
-    // reset tc status
-    ['wstc1','wstc2'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.textContent = '—'; el.style.color = '#4A5568'; }
-    });
-    document.getElementById('ws-out-txt').textContent = '// Press Submit to run';
-    document.getElementById('ws-out-txt').style.color = '#546e7a';
-  }
-
-  function wsShowBTab(id) {
-    document.getElementById('ws-panel-tc').style.display  = id === 'tc'  ? 'block' : 'none';
-    document.getElementById('ws-panel-out').style.display = id === 'out' ? 'block' : 'none';
-    document.getElementById('ws-btab-tc').classList.toggle('active',  id === 'tc');
-    document.getElementById('ws-btab-out').classList.toggle('active', id === 'out');
-  }
-
-  function wsRunCode() {
-    // animate → show results
-    const outTxt = document.getElementById('ws-out-txt');
-    outTxt.style.color = '#8B949E';
-    outTxt.textContent = '// Running…';
-    wsShowBTab('out');
     setTimeout(() => {
-      ['wstc1','wstc2'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.textContent = '✓ Pass'; el.style.color = '#4ADE80'; }
-      });
-      outTxt.innerHTML = '<span style="color:#4ADE80">▶ [0, 1]</span>\n<span style="color:#4ADE80">▶ [1, 2]</span>\n<span style="color:#9B5AF5">// 2/2 passed · 24ms</span>';
-      outTxt.style.color = '';
-    }, 550);
+      setSuSubmitting(false)
+      setSuSuccess(true)
+      setTimeout(() => {
+        closeModal()
+        setSuSuccess(false)
+        setSu({ firstName: '', lastName: '', email: '', dept: '', year: '', password: '', confirmPassword: '' })
+        showToast(`Welcome, ${su.firstName}.`, true)
+      }, 2600)
+    }, 700)
   }
 
-  function wsSchedule() {
-    document.getElementById('ws-rev-info').innerHTML = 'Next review: <strong style="color:#4ADE80">scheduled ✓</strong>';
+  const handleSignin = async () => {
+    if (!si.email) return showToast('Enter your email.', false)
+    if (!isAmritaEmail(si.email)) return showToast('Only Amrita Chennai accounts can sign in.', false)
+    if (!si.password) return showToast('Enter your password.', false)
+    const r = await onSignIn(si.email, si.password)
+    if (r?.error) return showToast(r.error.message || 'Sign-in failed.', false)
+    closeModal()
   }
 
-  /* ── SIGN IN handler ── */
-  function handleSignin() {
-    const email = document.getElementById('si-email').value.trim();
-    const pwd   = document.getElementById('si-pwd').value;
-    if (!email) { showToast('⚠️ Please enter your email.'); return; }
-    if (!isAmritaEmail(email)) { showToast('⚠️ Only Amrita student accounts can sign in.'); return; }
-    if (!pwd) { showToast('⚠️ Please enter your password.'); return; }
-    closeModal('signin');
-    showToast('✅ Signed in! Redirecting to your dashboard…', 3500);
+  const handleForgot = async () => {
+    if (!fe) return showToast('Enter your email.', false)
+    if (!isAmritaEmail(fe)) return showToast('Use your Amrita Chennai student email.', false)
+    const r = await onForgotPassword(fe)
+    if (r?.error) return showToast(r.error.message || 'Failed.', false)
+    closeModal(); showToast('Reset link sent. Check your inbox.', true)
   }
-</script>
-</body>
-</html>
+
+  // Theme colors
+  const C = {
+    bg:       'transparent',
+    text:     darkMode ? '#F4F4F5' : '#201B4D',
+    section:  darkMode ? 'rgba(15,23,42,0.5)'   : 'rgba(255,255,255,0.55)',
+    alt:      darkMode ? 'rgba(17,24,39,0.55)'  : 'rgba(248,250,252,0.6)',
+    card:     darkMode ? 'rgba(17,24,39,0.9)'   : 'rgba(255,255,255,0.92)',
+    panel:    darkMode ? 'rgba(15,23,42,0.85)'  : 'rgba(250,250,250,0.88)',
+    border:   darkMode ? '#1F2937' : '#E4E4E7',
+    muted:    darkMode ? '#94A3B8' : '#756FA0',
+    sub:      darkMode ? '#CBD5E1' : '#4B4380',
+    cta:      darkMode ? '#09090B' : '#111827',
+    ctaText:  '#F4F4F5',
+    ctaSub:   darkMode ? '#94A3B8' : '#CBD5E1',
+    ctaBorder:darkMode ? '#374151' : '#D1D5DB',
+  }
+
+  const inp = {
+    width: '100%', background: C.panel, border: `1px solid ${C.border}`,
+    borderRadius: '8px', padding: '10px 12px', color: C.text,
+    fontFamily: 'Inter, sans-serif', fontSize: '14px', outline: 'none',
+    transition: 'border-color 0.2s ease',
+  }
+
+  const lbl = {
+    display: 'block', fontSize: '11px', fontWeight: 600,
+    color: C.muted, marginBottom: '5px',
+    fontFamily: 'JetBrains Mono, monospace',
+    textTransform: 'uppercase', letterSpacing: '0.06em',
+  }
+
+  const fade = (v, d = 0) => ({
+    opacity: v ? 1 : 0,
+    transform: v ? 'translateY(0)' : 'translateY(22px)',
+    transition: `opacity 0.65s ease ${d}s, transform 0.65s ease ${d}s`,
+  })
+
+  const eyebrow = {
+    fontSize: '11px', fontWeight: 700, color: C.muted,
+    textTransform: 'uppercase', letterSpacing: '0.1em',
+    marginBottom: '0.75rem', fontFamily: 'JetBrains Mono, monospace',
+  }
+
+  const h2style = {
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: 'clamp(1.4rem, 3vw, 2rem)',
+    fontWeight: 700, letterSpacing: '-0.03em',
+    ...(darkMode ? { color: C.text } : {}),
+  }
+  const headingClass = darkMode ? '' : 'gradient-text'
+
+  return (
+    <div style={{ background: C.bg, color: C.text, fontFamily: 'Inter, sans-serif', overflowX: 'hidden', minHeight: '100vh' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes revealSlide {
+          from { opacity: 0; transform: translateY(8px); max-height: 0; }
+          to   { opacity: 1; transform: translateY(0);   max-height: 200px; }
+        }
+        @keyframes btnAppear {
+          from { opacity: 0; transform: translateY(8px) scale(0.92); }
+          to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.96) translateY(12px); }
+          to   { opacity: 1; transform: none; }
+        }
+        @keyframes toastIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.4; }
+        }
+        @keyframes liveBlip {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.3; transform: scale(0.7); }
+        }
+        @keyframes fomoPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(79,70,229,0.0); }
+          50%       { box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
+        }
+        @keyframes gradientMove {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes shakeX {
+          10%, 90% { transform: translateX(-1px); }
+          20%, 80% { transform: translateX(2px); }
+          30%, 50%, 70% { transform: translateX(-5px); }
+          40%, 60% { transform: translateX(5px); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes mascotFloat {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-4px); }
+        }
+        @keyframes confettiFall {
+          0%   { transform: translate(0, -10vh) rotate(0deg); opacity: 1; }
+          100% { transform: translate(var(--drift), 110vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+        @keyframes drawCheck  { to { stroke-dashoffset: 0; } }
+        @keyframes cardPop {
+          from { opacity: 0; transform: scale(0.85) translateY(10px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes floatBlob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50%       { transform: translate(24px, -28px) scale(1.08); }
+        }
+        @keyframes ctaGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(129,140,248,0); }
+          50%       { box-shadow: 0 0 26px 5px rgba(129,140,248,0.38); }
+        }
+        @keyframes shimmerBadge {
+          0%   { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+
+        .gradient-text {
+          background: linear-gradient(120deg, #db2777, #6366f1, #0284c7, #db2777);
+          background-size: 300% 300%;
+          -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; color: transparent;
+          animation: gradientMove 7s ease infinite;
+        }
+        .bg-blob {
+          position: absolute; border-radius: 50%; filter: blur(64px);
+          opacity: 0.32; pointer-events: none; z-index: 0;
+          animation: floatBlob 11s ease-in-out infinite;
+        }
+        .blob-1 { width: 340px; height: 340px; background: #f9a8d4; top: -90px; left: -70px; }
+        .blob-2 { width: 300px; height: 300px; background: #a5b4fc; top: 100px; right: -80px; animation-delay: -3.5s; }
+        .blob-3 { width: 260px; height: 260px; background: #7dd3fc; bottom: -70px; left: 32%; animation-delay: -7s; }
+
+        .hero-cta { animation: ctaGlow 2.6s ease-in-out infinite; }
+
+        .feat-icon { display: inline-block; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), color 0.3s ease; }
+        .feat-cell:hover .feat-icon { transform: scale(1.3) rotate(10deg); color: #818CF8; }
+
+        @keyframes marqueeScroll {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .platform-track {
+          display: flex; width: max-content; gap: 14px;
+          animation: marqueeScroll 24s linear infinite;
+        }
+        .platform-track:hover { animation-play-state: paused; }
+        .platform-badge {
+          display: flex; align-items: center; gap: 8px;
+          padding: 10px 20px; border-radius: 999px; white-space: nowrap;
+          font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600;
+          transition: transform 0.2s ease;
+        }
+        .platform-badge:hover { transform: translateY(-3px); }
+        .platform-dot {
+          width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+          animation: pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes dashFlow { to { background-position: 32px 0; } }
+        .journey-line {
+          position: absolute; top: 27px; left: 6%; right: 6%; height: 2px;
+          background-image: repeating-linear-gradient(90deg, #818CF8 0 8px, transparent 8px 18px);
+          background-size: 32px 2px;
+          animation: dashFlow 1s linear infinite;
+        }
+        @keyframes journeyPop {
+          0%   { transform: scale(0.6); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .journey-node { animation: journeyPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+        .cosmic-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+        .aurora-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+        .cosmic-bg.fixed-bg, .aurora-bg.fixed-bg { position: fixed; z-index: -1; }
+        .cosmic-base { position: absolute; inset: 0; background: linear-gradient(180deg, #0b0f27 0%, #080a1c 45%, #05060f 100%); }
+        .cosmic-blob { position: absolute; border-radius: 50%; filter: blur(75px); mix-blend-mode: screen; animation: floatBlob 15s ease-in-out infinite; }
+        .cosmic-blob-1 { width: 440px; height: 440px; background: #ec4899; opacity: 0.42; top: -130px; left: -110px; }
+        .cosmic-blob-2 { width: 380px; height: 380px; background: #3b82f6; opacity: 0.4;  top: 50px;   right: -130px; animation-delay: -4s; }
+        .cosmic-blob-3 { width: 360px; height: 360px; background: #0ea5e9; opacity: 0.32; bottom: -110px; left: 18%;   animation-delay: -8s; }
+        .cosmic-blob-4 { width: 300px; height: 300px; background: #db2777; opacity: 0.32; bottom: 10px;  right: 12%;  animation-delay: -11s; }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.15; transform: scale(0.8); }
+          50%       { opacity: 1;    transform: scale(1.15); }
+        }
+        .cosmic-star {
+          position: absolute; border-radius: 50%; background: #fff;
+          box-shadow: 0 0 4px rgba(255,255,255,0.8);
+          animation-name: twinkle; animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+        }
+
+        .aurora-base { position: absolute; inset: 0; background: linear-gradient(160deg, #fdf2f8 0%, #eef2ff 45%, #f0f9ff 100%); }
+        .aurora-blob { position: absolute; border-radius: 50%; filter: blur(80px); animation: floatBlob 15s ease-in-out infinite; }
+        .aurora-blob-1 { width: 420px; height: 420px; background: #f472b6; opacity: 0.55; top: -120px;  left: -100px; }
+        .aurora-blob-2 { width: 380px; height: 380px; background: #93c5fd; opacity: 0.55; top: 60px;    right: -120px; animation-delay: -4s; }
+        .aurora-blob-3 { width: 340px; height: 340px; background: #7dd3fc; opacity: 0.5;  bottom: -100px; left: 20%;   animation-delay: -8s; }
+        .aurora-blob-4 { width: 300px; height: 300px; background: #f9a8d4; opacity: 0.45; bottom: 20px;  right: 15%;  animation-delay: -11s; }
+        @keyframes sparkleTwinkle {
+          0%, 100% { opacity: 0.2; transform: scale(0.7); }
+          50%       { opacity: 1;   transform: scale(1.3); }
+        }
+        .aurora-sparkle {
+          position: absolute; border-radius: 50%;
+          animation-name: sparkleTwinkle; animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+        }
+
+        @keyframes rocketFly { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+        .hero-rocket {
+          position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none;
+          offset-path: path('M40,380 C160,110 380,50 560,180 C710,270 660,430 480,470 C300,510 110,460 40,380 Z');
+          offset-rotate: 0deg;
+          animation: rocketFly 16s linear infinite;
+          filter: drop-shadow(0 0 8px rgba(129,140,248,0.6));
+        }
+        @keyframes rocketBounce {
+          0%, 100% { transform: translateY(0) rotate(-8deg); }
+          50%       { transform: translateY(-4px) rotate(4deg); }
+        }
+        .inline-rocket {
+          display: inline-block; font-size: 0.75em;
+          animation: rocketBounce 1.8s ease-in-out infinite;
+        }
+
+        .floating-field { position: relative; margin-bottom: 20px; border-radius: 10px; }
+        .floating-field.field-error { animation: shakeX 0.5s ease; }
+        .field-glow {
+          position: absolute; inset: -4px; border-radius: 12px;
+          background: linear-gradient(120deg, #f472b6, #818cf8, #38bdf8, #f472b6);
+          background-size: 300% 300%;
+          opacity: 0; filter: blur(7px);
+          transition: opacity 0.35s ease;
+          animation: gradientMove 4s linear infinite;
+          z-index: 0; pointer-events: none;
+        }
+        .floating-field.focused .field-glow { opacity: 0.6; }
+        .floating-field.field-error .field-glow { opacity: 0; }
+        .floating-input {
+          position: relative; z-index: 1; width: 100%;
+          border: 1.5px solid; border-radius: 8px;
+          padding: 19px 12px 9px; font-family: Inter, sans-serif;
+          font-size: 14px; outline: none;
+          transition: border-color 0.25s ease;
+        }
+        .floating-label {
+          position: absolute; left: 13px; top: 15px;
+          font-size: 13px; pointer-events: none; z-index: 2;
+          padding: 0 4px; border-radius: 4px;
+          transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+        }
+        .floating-label.floated { top: -8px; left: 9px; font-size: 10.5px; font-weight: 600; }
+
+        .mascot-float { animation: mascotFloat 3.2s ease-in-out infinite; }
+        .mascot-hand {
+          transform: translateY(0);
+          transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .mascot-hand.covering { transform: translateY(-58px); }
+
+        .signup-submit { transition: width 0.35s ease, border-radius 0.35s ease, padding 0.35s ease, opacity 0.15s ease; }
+        .signup-submit.is-loading {
+          width: 46px !important; min-width: 46px !important;
+          border-radius: 999px !important; padding: 11px 0 !important;
+        }
+        .signup-submit .btn-text { transition: opacity 0.2s ease; }
+        .signup-submit.is-loading .btn-text { opacity: 0; }
+        .btn-spinner {
+          position: absolute; top: 50%; left: 50%;
+          width: 16px; height: 16px; margin: -8px 0 0 -8px;
+          border: 2px solid rgba(255,255,255,0.35); border-top-color: currentColor;
+          border-radius: 50%; animation: spin 0.7s linear infinite;
+        }
+
+        .success-overlay {
+          position: fixed; inset: 0; z-index: 1000;
+          display: flex; align-items: center; justify-content: center;
+          backdrop-filter: blur(10px); overflow: hidden;
+          animation: fadeIn 0.35s ease;
+        }
+        .confetti-piece { position: absolute; top: 0; pointer-events: none; animation-name: confettiFall; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+        .success-card {
+          position: relative; z-index: 2; text-align: center;
+          border-radius: 16px; padding: 2.5rem 3rem;
+          animation: cardPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .check-circle { stroke-dasharray: 283; stroke-dashoffset: 283; animation: drawCircle 0.6s ease forwards; }
+        .check-path { stroke-dasharray: 70; stroke-dashoffset: 70; animation: drawCheck 0.4s ease forwards 0.55s; }
+
+        input:focus, select:focus {
+          border-color: ${darkMode ? '#4B5563' : '#09090B'} !important;
+          outline: none;
+        }
+        input::placeholder { color: ${darkMode ? '#6B7280' : '#A1A1AA'}; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: ${C.bg}; }
+        ::-webkit-scrollbar-thumb { background: ${darkMode ? '#374151' : '#D4D4D8'}; border-radius: 2px; }
+
+        .land-btn-p {
+          background: ${darkMode ? '#F4F4F5' : '#09090B'};
+          color: ${darkMode ? '#09090B' : '#FAFAFA'};
+          border: none; padding: 11px 22px; border-radius: 8px;
+          font-size: 14px; font-weight: 600; cursor: pointer;
+          font-family: Inter, sans-serif; letter-spacing: 0.01em;
+          transition: opacity 0.15s ease, transform 0.12s ease;
+          display: inline-block;
+        }
+        .land-btn-p:hover { opacity: 0.88; transform: translateY(-1px); }
+        .land-btn-p:active { transform: scale(0.97); }
+
+        .land-btn-g {
+          background: transparent;
+          color: ${C.text};
+          border: 1px solid ${C.border};
+          padding: 11px 22px; border-radius: 8px;
+          font-size: 14px; font-weight: 500; cursor: pointer;
+          font-family: Inter, sans-serif;
+          transition: border-color 0.15s ease, transform 0.12s ease, background 0.15s ease;
+          text-decoration: none; display: inline-flex; align-items: center;
+        }
+        .land-btn-g:hover { border-color: ${C.text}; transform: translateY(-1px); }
+        .land-btn-g:active { transform: scale(0.97); }
+
+        .feat-cell {
+          background: ${C.card};
+          padding: 1.5rem;
+          border-left: 2px solid transparent;
+          transition: background 0.18s ease, border-left-color 0.18s ease, transform 0.18s ease;
+          cursor: default;
+        }
+        .feat-cell:hover {
+          background: ${C.alt};
+          border-left-color: ${darkMode ? '#F4F4F5' : '#09090B'};
+          transform: translateX(4px);
+        }
+
+        .lb-row {
+          display: grid;
+          grid-template-columns: 28px 1fr auto;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 18px;
+          border-bottom: 1px solid ${C.border};
+          transition: background 0.15s ease;
+          cursor: default;
+        }
+        .lb-row:last-child { border-bottom: none; }
+        .lb-row:hover { background: ${C.alt}; }
+
+        .faq-btn {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 18px 20px;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          color: ${C.text};
+          font-family: Inter, sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          text-align: left;
+          transition: color 0.15s ease;
+        }
+        .faq-btn:hover { color: ${darkMode ? '#CBD5E1' : '#374151'}; }
+
+        .nav-toggler {
+          background: transparent;
+          color: ${C.muted};
+          border: 1px solid ${C.border};
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 13px;
+          cursor: pointer;
+          font-family: Inter, sans-serif;
+          transition: all 0.15s ease;
+        }
+        .nav-toggler:hover { border-color: ${C.text}; color: ${C.text}; }
+
+        .cta-primary-btn {
+          background: ${C.ctaText};
+          color: ${C.cta};
+          border: none; padding: 12px 24px; border-radius: 8px;
+          font-size: 14px; font-weight: 600; cursor: pointer;
+          font-family: Inter, sans-serif;
+          transition: opacity 0.15s ease, transform 0.12s ease;
+        }
+        .cta-primary-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .cta-primary-btn:active { transform: scale(0.97); }
+
+        .cta-ghost-btn {
+          background: transparent;
+          color: ${C.ctaSub};
+          border: 1px solid ${C.ctaBorder};
+          padding: 12px 24px; border-radius: 8px;
+          font-size: 14px; font-weight: 500; cursor: pointer;
+          font-family: Inter, sans-serif;
+          transition: all 0.15s ease;
+        }
+        .cta-ghost-btn:hover { border-color: ${C.ctaSub}; }
+
+        @media (max-width: 768px) {
+          .two-col { grid-template-columns: 1fr !important; gap: 2rem !important; }
+          .three-col { grid-template-columns: 1fr 1fr !important; }
+          .hide-sm { display: none !important; }
+        }
+      `}</style>
+
+      {darkMode ? <CosmicBackground fixed /> : <LightAuroraBackground fixed />}
+
+      {/* ── NAV ── */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 2rem', height: '56px',
+        background: darkMode
+          ? `rgba(9,9,11,${scrolled ? 0.95 : 0.7})`
+          : `rgba(250,250,250,${scrolled ? 0.95 : 0.7})`,
+        backdropFilter: 'blur(14px)',
+        borderBottom: `1px solid ${scrolled ? C.border : 'transparent'}`,
+        transition: 'background 0.3s ease, border-color 0.3s ease',
+      }}>
+        <span className="gradient-text" style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, fontSize: '15px', letterSpacing: '-0.02em' }}>
+          Track-It
+        </span>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button className="nav-toggler" onClick={toggleDark}>
+            {darkMode ? '☀ Light' : '☾ Dark'}
+          </button>
+          <button className="land-btn-g" onClick={() => openModal('signin')} style={{ padding: '7px 16px', fontSize: '13px' }}>
+            Sign in
+          </button>
+          <button className="land-btn-p" onClick={() => openModal('signup')} style={{ padding: '7px 16px', fontSize: '13px' }}>
+            Get started
+          </button>
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section ref={heroRef} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '7rem 2rem 5rem', borderBottom: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ maxWidth: '720px', width: '100%', position: 'relative', zIndex: 1, ...fade(heroIn) }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: C.muted, background: C.card, border: `1px solid ${C.border}`, padding: '4px 12px', borderRadius: '999px', marginBottom: '1.5rem', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.04em' }}>
+            Designed for Amrita Chennai Placement Prep
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+            <h1 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(2.4rem, 5.5vw, 3.8rem)', fontWeight: 700, lineHeight: 1.08, letterSpacing: '-0.04em', color: C.text, margin: 0 }}>
+              Stop solving.<br />
+              <span className={headingClass} style={darkMode ? { color: C.muted } : {}}>Start retaining.</span>
+            </h1>
+            <div className="mascot-float">
+              <RobotIcon size={72} />
+            </div>
+          </div>
+
+          <p style={{ fontSize: '1.05rem', color: C.sub, lineHeight: 1.78, marginBottom: '2.5rem', maxWidth: '500px' }}>
+            Track-It turns every placement problem you solve into a review that helps you retain the idea long term. It schedules reviews just before forgetting sets in.
+          </p>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '3rem' }}>
+            <button className="land-btn-p hero-cta" onClick={() => openModal('signup')}>
+              Start retaining for placements (Free)
+            </button>
+            <a href="#how" className="land-btn-g">See how it works</a>
+          </div>
+
+          {/* Stats + Queue widget */}
+          <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: '20px', alignItems: 'start' }}>
+            <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap', paddingTop: '2rem', borderTop: `1px solid ${C.border}` }}>
+              {HERO_METRICS.map(item => (
+                <div key={item.label}>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.2rem', fontWeight: 700, color: C.text, lineHeight: 1 }}>{item.value}</div>
+                  <div style={{ fontSize: '12px', color: C.muted, marginTop: '4px' }}>{item.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Queue widget */}
+            <div style={{
+              background: C.card, border: `1px solid ${C.border}`,
+              borderRadius: '14px', padding: '16px',
+              boxShadow: darkMode ? '0 16px 40px rgba(0,0,0,0.3)' : '0 16px 40px rgba(0,0,0,0.06)',
+              animation: heroIn ? 'fadeIn 0.8s ease 0.3s both' : 'none',
+            }}>
+              <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.16em', color: C.muted, marginBottom: '8px', fontFamily: 'JetBrains Mono, monospace' }}>Daily queue</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: C.text, marginBottom: '4px' }}>5 problems due</div>
+              <div style={{ fontSize: '12px', color: C.sub, lineHeight: 1.6, marginBottom: '14px' }}>A focused review queue each morning keeps placement prep on track.</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {DEMO_QUEUE_TAGS.map(tag => (
+                  <span key={tag} style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '999px', background: darkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)', color: C.sub, fontFamily: 'JetBrains Mono, monospace', border: `1px solid ${C.border}` }}>{tag}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PLATFORMS ── */}
+      <section style={{ padding: '2.75rem 0', background: C.section, borderBottom: `1px solid ${C.border}`, overflow: 'hidden' }}>
+        <div style={{ textAlign: 'center', fontSize: '11px', fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '1.25rem', fontFamily: 'JetBrains Mono, monospace' }}>
+          Log problems from any platform
+        </div>
+        <div style={{
+          maskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)',
+          WebkitMaskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)',
+        }}>
+          <div className="platform-track">
+            {[...PLATFORMS, ...PLATFORMS].map((p, i) => (
+              <div key={i} className="platform-badge" style={{ background: C.card, border: `1px solid ${C.border}`, color: C.text }}>
+                <span className="platform-dot" style={{ background: p.color, animationDelay: `${(i % PLATFORMS.length) * 0.15}s` }} />
+                {p.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FORGETTING CURVE ── */}
+      <section ref={curveRef} style={{ padding: '6rem 2rem', background: C.section, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div style={{ ...fade(curveIn), marginBottom: '3rem' }}>
+            <div style={eyebrow}>The Problem</div>
+            <h2 className={headingClass} style={{ ...h2style, marginBottom: '0.75rem' }}>You forget 70% of what you solve within 24 hours.</h2>
+            <p style={{ fontSize: '15px', color: C.sub, maxWidth: '480px', lineHeight: 1.7 }}>Ebbinghaus's forgetting curve, established in 1885. The fix is spaced repetition — review just before you forget and the memory consolidates permanently.</p>
+          </div>
+          <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', ...fade(curveIn, 0.15) }}>
+            {/* Without */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '1.75rem' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1.25rem' }}>Without review</div>
+              {[['Day 1', 100], ['Day 3', 40], ['Day 7', 20], ['Day 30', 5]].map(([l, pct]) => (
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: C.muted, width: '44px', flexShrink: 0 }}>{l}</div>
+                  <div style={{ flex: 1, height: '6px', background: C.panel, borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: '#FCA5A5', width: curveIn ? pct + '%' : '0%', borderRadius: '3px', transition: 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                  </div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: C.muted, width: '32px', textAlign: 'right' }}>{pct}%</div>
+                </div>
+              ))}
+              <p style={{ fontSize: '12px', color: C.muted, marginTop: '1rem', lineHeight: 1.6, paddingTop: '1rem', borderTop: `1px solid ${C.border}` }}>
+                Grinding 200 problems means nothing if you can't reproduce them under pressure.
+              </p>
+            </div>
+            {/* With */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '1.75rem' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#16A34A', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1.25rem' }}>With Track-It</div>
+              {[['Review 1', 100], ['Review 2', 100], ['Review 3', 100], ['Review 4', 100]].map(([l, pct]) => (
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: C.muted, width: '44px', flexShrink: 0 }}>{l}</div>
+                  <div style={{ flex: 1, height: '6px', background: C.panel, borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: '#86EFAC', width: curveIn ? pct + '%' : '0%', borderRadius: '3px', transition: 'width 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.35s' }} />
+                  </div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: C.muted, width: '32px', textAlign: 'right' }}>{pct}%</div>
+                </div>
+              ))}
+              <p style={{ fontSize: '12px', color: C.muted, marginTop: '1rem', lineHeight: 1.6, paddingTop: '1rem', borderTop: `1px solid ${C.border}` }}>
+                After 4 spaced reviews, the pattern becomes automatic. Solving and knowing are different things.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS + DEMO ── */}
+      <section id="how" ref={howRef} style={{ padding: '6rem 2rem', borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '3.5rem', ...fade(howIn) }}>
+            <div style={eyebrow}>How it works</div>
+            <h2 className={headingClass} style={h2style}>Try it — this is the real experience.</h2>
+          </div>
+          <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
+            <div style={{ ...fade(howIn, 0.1) }}>
+              <DemoCard darkMode={darkMode} showToast={showToast} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', ...fade(howIn, 0.2) }}>
+              {HOW_IT_WORKS.map(s => (
+                <div key={s.n} style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 700, color: C.muted, paddingTop: '3px', flexShrink: 0, width: '20px' }}>{s.n}</div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: C.text, marginBottom: '6px' }}>{s.title}</div>
+                    <div style={{ fontSize: '13px', color: C.sub, lineHeight: 1.7, whiteSpace: 'pre-line' }}>{s.body}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── YOUR JOURNEY ── */}
+      <section ref={journeyRef} style={{ padding: '6rem 2rem', borderBottom: `1px solid ${C.border}`, position: 'relative' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '3.5rem', ...fade(journeyIn) }}>
+            <div style={eyebrow}>Your journey</div>
+            <h2 className={headingClass} style={h2style}>From first solve to placement-ready.</h2>
+            <p style={{ fontSize: '14px', color: C.sub, marginTop: '0.6rem', maxWidth: '480px', lineHeight: 1.7 }}>Every problem you log starts a personal learning-and-reviewing loop — here's what that looks like over time.</p>
+          </div>
+          <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${JOURNEY_STEPS.length}, 1fr)`, gap: '12px' }} className="three-col">
+            {journeyIn && <div className="journey-line" />}
+            {JOURNEY_STEPS.map((s, i) => (
+              <div key={s.title} className="journey-node" style={{ textAlign: 'center', animationDelay: `${i * 0.12}s`, position: 'relative', zIndex: 1 }}>
+                <div style={{
+                  width: '56px', height: '56px', borderRadius: '50%', margin: '0 auto 14px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: C.card, border: `2px solid ${C.border}`,
+                  fontSize: '20px', color: C.text, fontFamily: 'JetBrains Mono, monospace',
+                  boxShadow: darkMode ? '0 4px 16px rgba(0,0,0,0.35)' : '0 4px 16px rgba(0,0,0,0.08)',
+                }}>
+                  {s.icon}
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: C.text, marginBottom: '5px', fontFamily: 'JetBrains Mono, monospace' }}>{s.title}</div>
+                <div style={{ fontSize: '11.5px', color: C.muted, lineHeight: 1.6 }}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section ref={featRef} style={{ padding: '6rem 2rem', background: C.section, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '3rem', ...fade(featIn) }}>
+            <div style={eyebrow}>Features</div>
+            <h2 className={headingClass} style={h2style}>Everything built to make knowledge stick.</h2>
+          </div>
+          <div className="three-col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: C.border, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${C.border}` }}>
+            {FEATURES.map((f, i) => (
+              <div
+                key={f.title}
+                className="feat-cell"
+                style={{ ...fade(featIn, i * 0.05) }}
+              >
+                <div className="feat-icon" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '16px', color: C.text, marginBottom: '10px' }}>{f.icon}</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: C.text, marginBottom: '6px' }}>{f.title}</div>
+                <div style={{ fontSize: '12px', color: C.muted, lineHeight: 1.65 }}>{f.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section ref={faqRef} style={{ padding: '5rem 2rem', background: C.alt, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '2.5rem', ...fade(faqIn) }}>
+            <div style={eyebrow}>FAQ</div>
+            <h2 className={headingClass} style={h2style}>Quick answers.</h2>
+          </div>
+          {FAQ_ITEMS.map((item, i) => (
+            <div
+              key={item.q}
+              style={{
+                background: C.card, border: `1px solid ${C.border}`,
+                borderRadius: '10px', marginBottom: '10px', overflow: 'hidden',
+                ...fade(faqIn, i * 0.08),
+                transition: `opacity 0.6s ease ${i * 0.08}s, transform 0.6s ease ${i * 0.08}s, border-color 0.2s ease`,
+                borderColor: faqOpen === i ? (darkMode ? '#374151' : '#D1D5DB') : C.border,
+              }}
+            >
+              <button className="faq-btn" onClick={() => setFaqOpen(faqOpen === i ? -1 : i)}>
+                <span>{item.q}</span>
+                <span style={{
+                  fontFamily: 'JetBrains Mono, monospace', color: C.muted, fontSize: '16px',
+                  transform: faqOpen === i ? 'rotate(45deg)' : 'rotate(0)',
+                  transition: 'transform 0.25s ease',
+                  display: 'inline-block',
+                }}>+</span>
+              </button>
+              <div style={{
+                maxHeight: faqOpen === i ? '200px' : '0',
+                overflow: 'hidden',
+                transition: 'max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}>
+                <div style={{ padding: '0 20px 18px', color: C.sub, fontSize: '14px', lineHeight: 1.7 }}>
+                  {item.a}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── LEADERBOARD ── */}
+      <section ref={lbRef} style={{ padding: '6rem 2rem', background: C.section, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+          <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '4rem', alignItems: 'center' }}>
+            <div style={{ ...fade(lbIn) }}>
+              <div style={eyebrow}>Leaderboard</div>
+              <h2 className={headingClass} style={{ ...h2style, marginBottom: '1rem' }}>Your batchmates are already grinding.</h2>
+              <p style={{ fontSize: '14px', color: C.sub, lineHeight: 1.75, marginBottom: '1rem' }}>
+                A competitive ladder for Amrita Chennai students only. See exactly where you stand with peers who are also prepping for placements.
+              </p>
+              <p style={{ fontSize: '14px', color: C.sub, lineHeight: 1.75, marginBottom: '1.5rem' }}>
+                Streaks show daily review consistency — not just problem counts. Keep the streak and your focus area sharp.
+              </p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: C.muted, background: C.alt, border: `1px solid ${C.border}`, padding: '6px 12px', borderRadius: '6px', fontFamily: 'JetBrains Mono, monospace' }}>
+                Appear after solving 10+ problems
+              </div>
+            </div>
+
+            <div style={{ ...fade(lbIn, 0.15) }}>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: C.text, fontFamily: 'JetBrains Mono, monospace' }}>Amrita Chennai</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, color: '#16A34A', fontFamily: 'JetBrains Mono, monospace' }}>
+                    <span style={{ width: '5px', height: '5px', background: '#16A34A', borderRadius: '50%', animation: 'liveBlip 1.8s ease-in-out infinite' }} />
+                    Live
+                  </div>
+                </div>
+
+                {LB_ROWS.map((r, i) => (
+                  <div
+                    key={r.name}
+                    className="lb-row"
+                    style={{
+                      opacity: lbIn ? (r.blur ? 0.45 : 1) : 0,
+                      transform: lbIn ? 'translateX(0)' : 'translateX(-16px)',
+                      transition: `opacity 0.45s ease ${i * 0.09}s, transform 0.45s ease ${i * 0.09}s`,
+                      filter: r.blur ? 'blur(3px)' : 'none',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', fontWeight: 700, color: i < 3 ? C.text : C.muted, textAlign: 'center' }}>
+                      {i === 0 ? '①' : i === 1 ? '②' : i === 2 ? '③' : `${i + 1}`}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: C.alt, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: C.sub, flexShrink: 0 }}>
+                        {r.blur ? '??' : r.initials}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: C.text }}>{r.blur ? '••••• •••••' : r.name}</div>
+                        <div style={{ fontSize: '11px', color: C.muted }}>{r.blur ? 'CSE · ?rd Year' : r.dept}</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: C.text, fontFamily: 'JetBrains Mono, monospace' }}>{r.blur ? '?,???' : r.xp} XP</div>
+                      <div style={{ fontSize: '11px', color: C.muted, fontFamily: 'JetBrains Mono, monospace' }}>🔥 {r.blur ? '??d' : r.streak} streak</div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* FOMO row */}
+                <div style={{
+                  padding: '14px 18px',
+                  borderTop: `1px solid ${C.border}`,
+                  background: darkMode ? 'rgba(79,70,229,0.06)' : 'rgba(79,70,229,0.03)',
+                  animation: lbIn ? 'fomoPulse 3s ease-in-out infinite' : 'none',
+                }}>
+                  <div style={{ fontSize: '13px', color: C.muted, marginBottom: '8px', fontFamily: 'JetBrains Mono, monospace', textAlign: 'center' }}>
+                    You? (CSE · Your Year) — Join the ladder
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <button className="land-btn-p" onClick={() => openModal('signup')} style={{ fontSize: '13px', padding: '8px 18px' }}>
+                      Claim your spot
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section ref={ctaRef} style={{ padding: '7rem 2rem', background: C.cta }}>
+        <div style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center', ...fade(ctaIn) }}>
+          <h2 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 700, letterSpacing: '-0.04em', color: C.ctaText, marginBottom: '1rem' }}>
+            Placement season doesn't wait.
+          </h2>
+          <p style={{ fontSize: '15px', color: C.ctaSub, lineHeight: 1.75, marginBottom: '0.5rem' }}>
+            The students who retained what they practiced will outperform the ones who just solved more.
+          </p>
+          <p style={{ fontSize: '12px', color: C.ctaSub, marginBottom: '2.5rem', fontFamily: 'JetBrains Mono, monospace' }}>
+            Built by Amrita Chennai CSE students · In active development
+          </p>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+            <button className="cta-primary-btn" onClick={() => openModal('signup')}>Create free account</button>
+            <button className="cta-ghost-btn" onClick={() => openModal('signin')}>Sign in</button>
+          </div>
+          <p style={{ fontSize: '12px', color: C.ctaSub, fontFamily: 'JetBrains Mono, monospace' }}>
+            {DOMAIN} · Free forever · No credit card
+          </p>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ background: C.cta, borderTop: `1px solid ${C.ctaBorder}`, padding: '2rem', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', fontWeight: 700, color: C.ctaText, marginBottom: '4px' }}>Track-It</div>
+        <p style={{ fontSize: '12px', color: C.ctaSub, marginBottom: '2px' }}>Built by Amrita Chennai students, for Amrita Chennai students.</p>
+        <p style={{ fontSize: '11px', color: C.ctaSub }}>©️ 2026 Track-It</p>
+      </footer>
+
+      {/* ── SIGNUP MODAL ── */}
+      {modal === 'signup' && !suSuccess && (
+        <div onClick={overlayClick} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '16px', width: '100%', maxWidth: '420px', padding: '1.75rem 2rem 2rem', position: 'relative', animation: 'modalIn 0.22s ease', maxHeight: '92vh', overflowY: 'auto' }}>
+            <button onClick={closeModal} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: C.muted, lineHeight: 1, zIndex: 3 }}>✕</button>
+
+            <Mascot covering={pwFocused} C={C} />
+
+            <div style={{ textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', fontWeight: 700, marginBottom: '4px', color: C.text }}>Track-It</div>
+            <h2 style={{ textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '1.2rem', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '4px', color: C.text }}>Create your account</h2>
+            <p style={{ textAlign: 'center', fontSize: '13px', color: C.muted, marginBottom: '1.1rem' }}>
+              Already have one? <span onClick={() => switchModal('signin')} style={{ color: C.text, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>Sign in</span>
+            </p>
+            <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: '8px', padding: '8px 12px', marginBottom: '1.25rem', fontSize: '12px', color: C.muted, fontFamily: 'JetBrains Mono, monospace', textAlign: 'center' }}>
+              Requires {DOMAIN}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <FloatingInput name="firstName" label="First name" C={C} value={su.firstName} error={suErrors.firstName} shakeTick={suShakeTick}
+                onChange={e => { setSu(p => ({ ...p, firstName: e.target.value })); setSuErrors(er => ({ ...er, firstName: false })) }} />
+              <FloatingInput name="lastName" label="Last name" optional C={C} value={su.lastName} shakeTick={suShakeTick}
+                onChange={e => setSu(p => ({ ...p, lastName: e.target.value }))} />
+            </div>
+
+            <FloatingInput name="email" label="College email" type="email" autoComplete="email" C={C} value={su.email} error={suErrors.email} shakeTick={suShakeTick}
+              onChange={e => { setSu(p => ({ ...p, email: e.target.value })); setSuErrors(er => ({ ...er, email: false })) }} />
+
+            <div key={suErrors.dept ? `dept-err-${suShakeTick}` : 'dept'} className={`floating-field${suErrors.dept ? ' field-error' : ''}`} style={{ marginBottom: '20px' }}>
+              <label style={lbl}>Department</label>
+              <select style={{ ...inp, borderColor: suErrors.dept ? '#DC2626' : C.border }} value={su.dept} onChange={e => { setSu(p => ({ ...p, dept: e.target.value })); setSuErrors(er => ({ ...er, dept: false })) }}>
+                <option value="" disabled>Select</option>
+                {['CSE','IT','ECE','EEE','MECH','CIVIL','AIDS','AIML'].map(d => <option key={d}>{d}</option>)}
+              </select>
+            </div>
+
+            <div key={suErrors.year ? `year-err-${suShakeTick}` : 'year'} className={`floating-field${suErrors.year ? ' field-error' : ''}`} style={{ marginBottom: '18px' }}>
+              <label style={lbl}>Year</label>
+              <select style={{ ...inp, borderColor: suErrors.year ? '#DC2626' : C.border }} value={su.year} onChange={e => { setSu(p => ({ ...p, year: e.target.value })); setSuErrors(er => ({ ...er, year: false })) }}>
+                <option value="" disabled>Select</option>
+                {['1st Year','2nd Year','3rd Year','4th Year'].map(y => <option key={y}>{y}</option>)}
+              </select>
+            </div>
+
+            <div style={{ fontSize: '11px', fontWeight: 600, color: C.muted, marginBottom: '6px', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Step 1 · Choose a password
+            </div>
+            <FloatingInput name="password" label="Password" type="password" autoComplete="new-password" C={C} value={su.password} error={suErrors.password} shakeTick={suShakeTick}
+              onFocusChange={f => setPwFocused(f)}
+              onChange={e => { setSu(p => ({ ...p, password: e.target.value })); setSuErrors(er => ({ ...er, password: false })) }} />
+            <PasswordStrength password={su.password} C={C} />
+
+            <div style={{ fontSize: '11px', fontWeight: 600, color: C.muted, marginBottom: '6px', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Step 2 · Confirm password
+            </div>
+            <FloatingInput name="confirmPassword" label="Confirm password" type="password" autoComplete="new-password" C={C} value={su.confirmPassword} error={suErrors.confirmPassword} shakeTick={suShakeTick}
+              onFocusChange={f => setPwFocused(f)}
+              onChange={e => { setSu(p => ({ ...p, confirmPassword: e.target.value })); setSuErrors(er => ({ ...er, confirmPassword: false })) }} />
+            {su.confirmPassword && (
+              <div style={{ marginTop: '-10px', marginBottom: '14px', fontSize: '11.5px', color: su.confirmPassword === su.password ? '#16A34A' : '#DC2626', transition: 'color 0.2s ease' }}>
+                {su.confirmPassword === su.password ? '✓ Passwords match' : 'Passwords do not match yet'}
+              </div>
+            )}
+
+            <button
+              className={`land-btn-p signup-submit${suSubmitting ? ' is-loading' : ''}`}
+              onClick={handleSignup}
+              disabled={suSubmitting}
+              style={{ width: '100%', padding: '11px', marginTop: '6px', position: 'relative', overflow: 'hidden', color: darkMode ? '#09090B' : '#FAFAFA' }}
+            >
+              <span className="btn-text">Create account</span>
+              {suSubmitting && <span className="btn-spinner" />}
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '1.25rem' }}>
+              <hr style={{ flex: 1, border: 'none', borderTop: `1px solid ${C.border}` }} />
+              <span style={{ fontSize: '11px', color: C.muted, whiteSpace: 'nowrap' }}>Free forever · No card needed</span>
+              <hr style={{ flex: 1, border: 'none', borderTop: `1px solid ${C.border}` }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SIGNUP SUCCESS ── */}
+      {suSuccess && <SuccessOverlay name={su.firstName} C={C} />}
+
+      {/* ── SIGNIN MODAL ── */}
+      {modal === 'signin' && (
+        <div onClick={overlayClick} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '16px', width: '100%', maxWidth: '380px', padding: '2rem', position: 'relative', animation: 'modalIn 0.22s ease' }}>
+            <button onClick={closeModal} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: C.muted, lineHeight: 1 }}>✕</button>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', fontWeight: 700, marginBottom: '4px', color: C.text }}>Track-It</div>
+            {!forgot ? (
+              <>
+                <h2 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.2rem', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '4px', color: C.text }}>Welcome back</h2>
+                <p style={{ fontSize: '13px', color: C.muted, marginBottom: '1.25rem' }}>
+                  New here? <span onClick={() => switchModal('signup')} style={{ color: C.text, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>Create account</span>
+                </p>
+                <div style={{ marginBottom: '10px' }}><label style={lbl}>College email</label><input type="email" style={inp} placeholder={`cb.en.u4cse22xxx${DOMAIN}`} value={si.email} onChange={e => setSi(p => ({ ...p, email: e.target.value }))} /></div>
+                <div style={{ marginBottom: '6px' }}><label style={lbl}>Password</label><input type="password" style={inp} placeholder="Your password" value={si.password} onChange={e => setSi(p => ({ ...p, password: e.target.value }))} /></div>
+                <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+                  <span onClick={() => setForgot(true)} style={{ fontSize: '12px', color: C.muted, cursor: 'pointer', textDecoration: 'underline' }}>Forgot password?</span>
+                </div>
+                <button className="land-btn-p" onClick={handleSignin} style={{ width: '100%', padding: '11px' }}>Sign in</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setForgot(false)} style={{ background: 'none', border: 'none', fontSize: '13px', color: C.muted, cursor: 'pointer', padding: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  ← Back
+                </button>
+                <h2 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.2rem', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '4px', color: C.text }}>Reset password</h2>
+                <p style={{ fontSize: '13px', color: C.muted, marginBottom: '1.25rem' }}>Enter your college email and we'll send a reset link.</p>
+                <div style={{ marginBottom: '1rem' }}><label style={lbl}>College email</label><input type="email" style={inp} placeholder={`cb.en.u4cse22xxx${DOMAIN}`} value={fe} onChange={e => setFe(e.target.value)} /></div>
+                <button className="land-btn-p" onClick={handleForgot} style={{ width: '100%', padding: '11px' }}>Send reset link</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── TOAST ── */}
+      <div style={{
+        position: 'fixed', bottom: '24px', left: '50%',
+        transform: 'translateX(-50%)',
+        background: toast.ok ? C.card : (darkMode ? 'rgba(127,29,29,0.9)' : '#FEF2F2'),
+        border: `1px solid ${toast.ok ? C.border : (darkMode ? '#991B1B' : '#FECACA')}`,
+        borderLeft: `3px solid ${toast.ok ? (darkMode ? '#4B5563' : '#09090B') : '#DC2626'}`,
+        color: toast.ok ? C.text : (darkMode ? '#FECACA' : '#DC2626'),
+        borderRadius: '8px', padding: '10px 18px',
+        fontSize: '13px', fontFamily: 'Inter, sans-serif',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+        zIndex: 999,
+        opacity: toast.show ? 1 : 0,
+        animation: toast.show ? 'toastIn 0.3s cubic-bezier(0.16,1,0.3,1)' : 'none',
+        transition: 'opacity 0.25s ease',
+        pointerEvents: 'none',
+        whiteSpace: 'nowrap',
+      }}>
+        {toast.msg}
+      </div>
+    </div>
+  )
+}
