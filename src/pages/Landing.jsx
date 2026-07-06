@@ -58,14 +58,14 @@ const FAQ_ITEMS = [
 ]
 
 const PLATFORMS = [
-  { name: 'LeetCode', color: '#F59E0B' },
-  { name: 'HackerRank', color: '#22C55E' },
-  { name: 'GeeksforGeeks', color: '#16A34A' },
-  { name: 'Codeforces', color: '#3B82F6' },
-  { name: 'CodeChef', color: '#8B5CF6' },
-  { name: 'CodeStudio', color: '#EC4899' },
-  { name: 'InterviewBit', color: '#F97316' },
-  { name: 'AtCoder', color: '#0EA5E9' },
+  { name: 'LeetCode', color: '#F59E0B', mark: 'LC' },
+  { name: 'HackerRank', color: '#22C55E', mark: 'HR' },
+  { name: 'GeeksforGeeks', color: '#16A34A', mark: 'G4G' },
+  { name: 'Codeforces', color: '#3B82F6', mark: 'CF' },
+  { name: 'CodeChef', color: '#8B5CF6', mark: 'CC' },
+  { name: 'CodeStudio', color: '#EC4899', mark: 'CS' },
+  { name: 'InterviewBit', color: '#F97316', mark: 'IB' },
+  { name: 'AtCoder', color: '#0EA5E9', mark: 'AC' },
 ]
 
 const JOURNEY_STEPS = [
@@ -154,6 +154,22 @@ function RobotIcon({ size = 30 }) {
     </svg>
   )
 }
+// ── Platform monogram icon (simple letter-mark, not a copied logo) ──────────
+function PlatformIcon({ mark, color, size = 26 }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size * 0.28,
+      background: color, color: '#fff',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: 'JetBrains Mono, monospace', fontWeight: 700,
+      fontSize: size * 0.36, letterSpacing: '-0.03em', flexShrink: 0,
+      lineHeight: 1,
+    }}>
+      {mark}
+    </div>
+  )
+}
+
 function useInView(threshold = 0.15) {
   const ref = useRef(null)
   const [inView, setInView] = useState(false)
@@ -721,6 +737,16 @@ export default function Landing({
   }
   const headingClass = darkMode ? '' : 'gradient-text'
 
+  const footerHead = {
+    fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 700,
+    color: C.ctaText, textTransform: 'uppercase', letterSpacing: '0.08em',
+    marginBottom: '14px',
+  }
+  const footerLink = {
+    display: 'block', fontSize: '13px', color: C.ctaSub,
+    marginBottom: '10px', textDecoration: 'none', width: 'fit-content',
+  }
+
   return (
     <div style={{ background: C.bg, color: C.text, fontFamily: 'Inter, sans-serif', overflowX: 'hidden', minHeight: '100vh' }}>
       <style>{`
@@ -839,6 +865,14 @@ export default function Landing({
         .platform-dot {
           width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
           animation: pulse 2.4s ease-in-out infinite;
+        }
+
+        .footer-grid a:hover, .footer-grid span:hover { color: ${C.ctaText} !important; }
+        @media (max-width: 720px) {
+          .footer-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .footer-grid { grid-template-columns: 1fr !important; }
         }
 
         @keyframes dashFlow { to { background-position: 32px 0; } }
@@ -1191,7 +1225,7 @@ export default function Landing({
           <div className="platform-track">
             {[...PLATFORMS, ...PLATFORMS].map((p, i) => (
               <div key={i} className="platform-badge" style={{ background: C.card, border: `1px solid ${C.border}`, color: C.text }}>
-                <span className="platform-dot" style={{ background: p.color, animationDelay: `${(i % PLATFORMS.length) * 0.15}s` }} />
+                <PlatformIcon mark={p.mark} color={p.color} size={20} />
                 {p.name}
               </div>
             ))}
@@ -1300,7 +1334,7 @@ export default function Landing({
       </section>
 
       {/* ── FEATURES ── */}
-      <section ref={featRef} style={{ padding: '6rem 2rem', background: C.section, borderBottom: `1px solid ${C.border}` }}>
+      <section id="features" ref={featRef} style={{ padding: '6rem 2rem', background: C.section, borderBottom: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div style={{ marginBottom: '3rem', ...fade(featIn) }}>
             <div style={eyebrow}>Features</div>
@@ -1323,7 +1357,7 @@ export default function Landing({
       </section>
 
       {/* ── FAQ ── */}
-      <section ref={faqRef} style={{ padding: '5rem 2rem', background: C.alt, borderBottom: `1px solid ${C.border}` }}>
+      <section id="faq" ref={faqRef} style={{ padding: '5rem 2rem', background: C.alt, borderBottom: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <div style={{ marginBottom: '2.5rem', ...fade(faqIn) }}>
             <div style={eyebrow}>FAQ</div>
@@ -1364,7 +1398,7 @@ export default function Landing({
       </section>
 
       {/* ── LEADERBOARD ── */}
-      <section ref={lbRef} style={{ padding: '6rem 2rem', background: C.section, borderBottom: `1px solid ${C.border}` }}>
+      <section id="leaderboard" ref={lbRef} style={{ padding: '6rem 2rem', background: C.section, borderBottom: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '4rem', alignItems: 'center' }}>
             <div style={{ ...fade(lbIn) }}>
@@ -1466,10 +1500,71 @@ export default function Landing({
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: C.cta, borderTop: `1px solid ${C.ctaBorder}`, padding: '2rem', textAlign: 'center' }}>
-        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', fontWeight: 700, color: C.ctaText, marginBottom: '4px' }}>Track-It</div>
-        <p style={{ fontSize: '12px', color: C.ctaSub, marginBottom: '2px' }}>Built by Amrita Chennai students, for Amrita Chennai students.</p>
-        <p style={{ fontSize: '11px', color: C.ctaSub }}>©️ 2026 Track-It</p>
+      <footer style={{ background: C.cta, borderTop: `1px solid ${C.ctaBorder}`, padding: '4.5rem 2rem 0' }}>
+        <div className="footer-grid" style={{ maxWidth: '1140px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.5fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr', gap: '2.25rem', paddingBottom: '2.5rem' }}>
+
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <span style={{ fontSize: '18px' }}>🚀</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '15px', fontWeight: 700, color: C.ctaText }}>Track-It</span>
+            </div>
+            <p style={{ fontSize: '13px', color: C.ctaSub, lineHeight: 1.7, marginBottom: '18px', maxWidth: '260px' }}>
+              Master DSA with active recall, spaced repetition, and a peer leaderboard built exclusively for Amrita Chennai students.
+            </p>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {PLATFORMS.map(p => <PlatformIcon key={p.name} mark={p.mark} color={p.color} size={24} />)}
+            </div>
+          </div>
+
+          <div>
+            <div style={footerHead}>Product</div>
+            <a href="#features" style={footerLink}>Features</a>
+            <a href="#how" style={footerLink}>How it works</a>
+            <a href="#leaderboard" style={footerLink}>Leaderboard</a>
+            <a href="#faq" style={footerLink}>FAQ</a>
+          </div>
+
+          <div>
+            <div style={footerHead}>Learn</div>
+            <a href="#features" style={footerLink}>Spaced Repetition</a>
+            <a href="#features" style={footerLink}>Weak Topic Radar</a>
+            <a href="#features" style={footerLink}>Master Notebook</a>
+            <a href="#features" style={footerLink}>XP &amp; Rank Ladder</a>
+          </div>
+
+          <div>
+            <div style={footerHead}>Account</div>
+            <span onClick={() => openModal('signup')} style={{ ...footerLink, cursor: 'pointer' }}>Create account</span>
+            <span onClick={() => openModal('signin')} style={{ ...footerLink, cursor: 'pointer' }}>Sign in</span>
+            <a href="#faq" style={footerLink}>Help &amp; FAQ</a>
+          </div>
+
+          <div>
+            <div style={footerHead}>Company</div>
+            <a href="#" style={footerLink}>About</a>
+            <a href="#" style={footerLink}>Contact</a>
+            <a href="#" style={footerLink}>Feedback</a>
+          </div>
+
+          <div>
+            <div style={footerHead}>Legal</div>
+            <a href="#" style={footerLink}>Privacy Policy</a>
+            <a href="#" style={footerLink}>Terms of Service</a>
+          </div>
+        </div>
+
+        <div style={{ borderTop: `1px solid ${C.ctaBorder}`, maxWidth: '1140px', margin: '0 auto', padding: '1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <span style={{ fontSize: '12px', color: C.ctaSub, fontFamily: 'JetBrains Mono, monospace' }}>📧 example@ch.students.amrita.edu</span>
+          <span style={{ fontSize: '12px', color: C.ctaSub, fontFamily: 'JetBrains Mono, monospace' }}>🌍 Amrita Vishwa Vidyapeetham · Chennai Campus</span>
+        </div>
+
+        <div style={{ borderTop: `1px solid ${C.ctaBorder}`, maxWidth: '1140px', margin: '0 auto', padding: '1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <span style={{ fontSize: '11.5px', color: C.ctaSub }}>© 2026 Track-It. Built for students who want to become better programmers.</span>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <a href="#" style={{ fontSize: '11.5px', color: C.ctaSub, textDecoration: 'none' }}>GitHub</a>
+            <a href="#" style={{ fontSize: '11.5px', color: C.ctaSub, textDecoration: 'none' }}>LinkedIn</a>
+          </div>
+        </div>
       </footer>
 
       {/* ── SIGNUP MODAL ── */}
